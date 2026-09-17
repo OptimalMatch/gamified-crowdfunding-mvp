@@ -1,0 +1,32 @@
+# Draft from the MVP sheet of "Gamified crowdfunding: a draw anybody can recompute, and a crowd that ships". Edit freely; the sheet is the intent.
+services:
+  metabase:
+    image: metabase/metabase
+    ports: ["3000:3000"]
+    networks: [demo]
+  closed-rounds-and-proofs:
+    image: minio/minio
+    networks: [demo]
+  backer-app-and-web-sim:
+    build: ./sims/backer-app-and-web
+    depends_on: [node]
+    networks: [demo]
+  verify-it-yourself-sim:
+    build: ./sims/verify-it-yourself
+    depends_on: [node]
+    networks: [demo]
+  escrow-and-payouts-sim:
+    build: ./sims/escrow-and-payouts
+    depends_on: [node]
+    networks: [demo]
+  round-agent-over-mcp-sim:
+    build: ./sims/round-agent-over-mcp
+    depends_on: [node]
+    networks: [demo]
+  seed:
+    build: ./seed
+    depends_on: [node]
+    networks: [demo]
+volumes:
+networks:
+  demo: {}

@@ -1,0 +1,16 @@
+# The engine is proprietary and binaries never go into git: the release archive
+# comes from the OptimalMatch/peer-to-peer-db releases (bin/fetch-engine.sh).
+*.tar.gz
+*.zip
+SHA256SUMS
+/unidatum
+/unidatum-sqld
+/unidatum-kafka
+/unidatum-xfer
+libunidatum*
+/engine/
+
+.env
+node_modules/
+/data/
+*.log

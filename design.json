@@ -1,0 +1,3117 @@
+{
+  "title": "Gamified crowdfunding: a draw anybody can recompute, and a crowd that ships",
+  "nodes": [
+    {
+      "id": "app",
+      "type": "app",
+      "label": "Backer app and web",
+      "notes": "Browse the round, pledge, watch the counter climb, vote on where it ships, and afterwards recompute the draw yourself from the numbers the round published.",
+      "x": 520,
+      "y": 60,
+      "h": 206,
+      "facts": {
+        "language": "Kotlin, Swift, TypeScript",
+        "api": "the region's node",
+        "users": "about 6 million backers"
+      }
+    },
+    {
+      "id": "people",
+      "type": "collection",
+      "label": "backers, wallets and standing",
+      "notes": "Who is in, what they hold in the wallet, which market they pledge from, and the streaks and tiers the game awarded them. The market matters: what a round may do differs by country.",
+      "x": 840,
+      "y": 60,
+      "h": 238,
+      "facts": {
+        "documents": "about 6 million",
+        "merge": "field-level: the backer, the platform",
+        "indexes": "backer unique; market, tier"
+      },
+      "detail": {
+        "title": "backers, wallets and standing",
+        "nodes": [
+          {
+            "id": "pe-f1",
+            "type": "field",
+            "label": "the wallet",
+            "notes": "",
+            "x": 80,
+            "y": 60,
+            "facts": {
+              "setby": "the backer, and escrow"
+            }
+          },
+          {
+            "id": "pe-f2",
+            "type": "field",
+            "label": "which market they are in",
+            "notes": "",
+            "x": 420,
+            "y": 60,
+            "facts": {
+              "setby": "residency, at signup"
+            }
+          },
+          {
+            "id": "pe-f3",
+            "type": "field",
+            "label": "streaks and tiers",
+            "notes": "",
+            "x": 760,
+            "y": 60,
+            "facts": {
+              "setby": "the game, on every pledge"
+            }
+          },
+          {
+            "id": "pe-p1",
+            "type": "pipeline",
+            "label": "Streaks, tiers and multipliers",
+            "notes": "Streaks for backing every week, tiers for what you have seen through, multipliers that weight an entry. Every award is a write on the backer, so what your odds are is a number you can read rather than a feeling.",
+            "x": 1100,
+            "y": 60,
+            "h": 223,
+            "facts": {
+              "rate": "on every pledge",
+              "lanes": "2",
+              "steps": "4"
+            }
+          },
+          {
+            "id": "pe-c1",
+            "type": "collection",
+            "label": "referrals and what they earn",
+            "notes": "Who brought whom, when, and what it paid. The reward vests on the newcomer's own first completed round rather than on their signing up, and it is capped per referrer per season.",
+            "x": 80,
+            "y": 343,
+            "h": 208,
+            "facts": {
+              "documents": "about 4 million",
+              "merge": "field-level: both backers",
+              "indexes": "referral unique; referrer"
+            }
+          },
+          {
+            "id": "pe-k2",
+            "type": "key",
+            "label": "A referral pays in credit, by default",
+            "notes": "A bonus that hands out extra entries turns an invitation into a way of buying odds, and the cheapest way to farm it is a page of accounts that are all the same person. Paying in credit keeps the draw out of it.",
+            "x": 420,
+            "y": 343,
+            "h": 174
+          },
+          {
+            "id": "pe-k3",
+            "type": "key",
+            "label": "It vests on what the newcomer does",
+            "notes": "Rewarding a signup rewards signups. Rewarding a round the newcomer saw through rewards a backer, which is the thing worth paying for, and it makes a farm of empty accounts cost more than it returns.",
+            "x": 760,
+            "y": 343,
+            "h": 174
+          },
+          {
+            "id": "pe-k1",
+            "type": "key",
+            "label": "Your odds are a number you can read",
+            "notes": "A multiplier that only the interface knows about is a mood. Writing every award onto the backer means the weight an entry carries is shown beside the scenario grid.",
+            "x": 1100,
+            "y": 343,
+            "h": 159
+          }
+        ],
+        "edges": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "mandate",
+      "type": "collection",
+      "label": "standing contributions",
+      "notes": "Ten pounds after every payday, into a category or a cause, until a date or until stopped. Signed once with its cadence and its ceiling, so a pledge that fires while the backer is asleep still traces to a signature they made.",
+      "x": 1160,
+      "y": 60,
+      "h": 236,
+      "facts": {
+        "documents": "about 2 million",
+        "merge": "field-level: the backer, the bank",
+        "indexes": "mandate unique; backer, cadence"
+      },
+      "detail": {
+        "title": "standing contributions",
+        "nodes": [
+          {
+            "id": "ma-f1",
+            "type": "field",
+            "label": "how much, how often",
+            "notes": "",
+            "x": 80,
+            "y": 60,
+            "facts": {
+              "setby": "the backer, once"
+            }
+          },
+          {
+            "id": "ma-f2",
+            "type": "field",
+            "label": "what it backs",
+            "notes": "",
+            "x": 420,
+            "y": 60,
+            "facts": {
+              "setby": "the backer"
+            }
+          },
+          {
+            "id": "ma-f3",
+            "type": "field",
+            "label": "the ceiling",
+            "notes": "",
+            "x": 760,
+            "y": 60,
+            "facts": {
+              "setby": "the backer, and the market"
+            }
+          },
+          {
+            "id": "ma-f4",
+            "type": "field",
+            "label": "until when",
+            "notes": "",
+            "x": 1100,
+            "y": 60,
+            "facts": {
+              "setby": "the backer"
+            }
+          },
+          {
+            "id": "ma-f5",
+            "type": "field",
+            "label": "the signature",
+            "notes": "",
+            "x": 80,
+            "y": 196,
+            "facts": {
+              "setby": "the backer's own device"
+            }
+          },
+          {
+            "id": "ma-k1",
+            "type": "key",
+            "label": "The mandate is signed, and the pledges refer to it",
+            "notes": "Every other pledge here is signed by the backer as they make it, and a payday transfer fires while they are asleep. So the standing instruction is the signed artefact: it states the amount, the cadence, the ceiling and the end, and each pledge it raises carries a reference to it. A mandate, in the sense a bank would recognise.",
+            "x": 420,
+            "y": 196,
+            "h": 221
+          },
+          {
+            "id": "ma-k2",
+            "type": "key",
+            "label": "A ceiling, because of the draw",
+            "notes": "A round with a random allocation and an instruction that funds it every payday is a combination that deserves a limit. The ceiling is on the mandate and on the market's own rules, checked before each collection, and a backer who reaches it is told rather than charged.",
+            "x": 760,
+            "y": 196,
+            "h": 204
+          },
+          {
+            "id": "ma-k3",
+            "type": "key",
+            "label": "Stopping it is one write",
+            "notes": "Cancelling a recurring payment is the part of a subscription most products make hard. Revocation here is a field on the mandate the backer owns, so the instruction stops on the write and the ledger shows exactly when.",
+            "x": 1100,
+            "y": 196,
+            "h": 157
+          },
+          {
+            "id": "ma-k4",
+            "type": "key",
+            "label": "A payday that did not land",
+            "notes": "A card expires, a transfer fails, a payday moves. The collection is attempted on the mandate's own terms and the pledge is raised when the money arrives, so what a round counts is money it actually holds.",
+            "x": 80,
+            "y": 477,
+            "h": 174
+          }
+        ],
+        "edges": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "pool",
+      "type": "collection",
+      "label": "pools, one per round",
+      "notes": "The money a round has gathered and the rule it will be allocated under, both written before pledging opens. The rule cannot move once the first pledge lands, which is what makes the round a promise.",
+      "x": 1480,
+      "y": 60,
+      "h": 221,
+      "facts": {
+        "documents": "about 50,000 rounds",
+        "merge": "field-level: every pledge",
+        "indexes": "round unique; market, closes"
+      },
+      "detail": {
+        "title": "pools, one per round",
+        "nodes": [
+          {
+            "id": "po2-c1",
+            "type": "collection",
+            "label": "ideas and campaigns",
+            "notes": "What somebody wants funded or bought: a product, a batch, a repair to a local thing. Proposed by a backer, sharpened by comments, and eligible for a round once it has a price and a supplier behind it.",
+            "x": 80,
+            "y": 60,
+            "h": 236,
+            "facts": {
+              "documents": "about 400,000",
+              "merge": "field-level: the proposer, the crowd",
+              "indexes": "idea unique; round, category"
+            }
+          },
+          {
+            "id": "po2-f1",
+            "type": "field",
+            "label": "the mechanism, frozen",
+            "notes": "",
+            "x": 420,
+            "y": 60,
+            "facts": {
+              "setby": "the round, at opening"
+            }
+          },
+          {
+            "id": "po2-f2",
+            "type": "field",
+            "label": "what it has gathered",
+            "notes": "",
+            "x": 760,
+            "y": 60,
+            "facts": {
+              "setby": "every pledge and match"
+            }
+          },
+          {
+            "id": "po2-f3",
+            "type": "field",
+            "label": "which band that reaches",
+            "notes": "",
+            "x": 1100,
+            "y": 60,
+            "facts": {
+              "setby": "the scenario grid"
+            }
+          },
+          {
+            "id": "po2-k1",
+            "type": "key",
+            "label": "The ballot is fixed when it opens",
+            "notes": "The ideas a round is allocating between are named when it opens, alongside the rule and the sealed seed. An idea added while pledging ran would change what people had already backed, so a late idea waits for the next round.",
+            "x": 80,
+            "y": 356,
+            "h": 174
+          }
+        ],
+        "edges": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "pledge",
+      "type": "collection",
+      "label": "pledges, signed",
+      "notes": "One document per pledge, signed by the backer's own device, carrying its place in the entry tree and the path to the root. Joining at minute one and minute fifty-nine leave the same kind of receipt.",
+      "x": 1800,
+      "y": 60,
+      "h": 221,
+      "facts": {
+        "documents": "about 90 million a year",
+        "merge": "field-level: the backer",
+        "indexes": "pledge unique; round, backer"
+      }
+    },
+    {
+      "id": "sponsor",
+      "type": "fleet",
+      "label": "A library per sponsor",
+      "notes": "A company that will match what the crowd raises, cover a shortfall, subsidise a tier or pay the distribution. Its terms, its cap and what it may see live in a library it shares with the platform alone.",
+      "x": 2120,
+      "y": 60,
+      "h": 236,
+      "facts": {
+        "nodes": "about 900 sponsors",
+        "sites": "their marketing and CSR teams",
+        "library": "one shared with the platform"
+      },
+      "detail": {
+        "title": "A library per sponsor",
+        "nodes": [
+          {
+            "id": "sp2-c1",
+            "type": "collection",
+            "label": "the sponsor's terms",
+            "notes": "Match a pound for a pound up to fifty thousand, in these categories, in these markets, for rounds that clear a floor. The terms are a document both sides signed, so what the sponsor owes is read rather than negotiated at the end.",
+            "x": 80,
+            "y": 60,
+            "h": 251,
+            "facts": {
+              "documents": "one per sponsor, per season",
+              "merge": "field-level: sponsor, platform",
+              "indexes": "sponsor unique; season"
+            }
+          },
+          {
+            "id": "sp2-c2",
+            "type": "collection",
+            "label": "what a sponsor may see",
+            "notes": "Totals, categories and outcomes. Never a backer's identity, their wallet or what they pledged, because the crowd did not join to be a mailing list. The boundary is a membership rather than a report somebody remembers to redact.",
+            "x": 420,
+            "y": 60,
+            "h": 221,
+            "facts": {
+              "documents": "one per sponsor",
+              "merge": "field-level: legal, the sponsor",
+              "indexes": "sponsor unique"
+            }
+          },
+          {
+            "id": "sp2-k1",
+            "type": "key",
+            "label": "Sponsor money changes what is on offer, never who wins",
+            "notes": "A match that doubled a backer's entry weight would let a company buy somebody's odds, which is the end of a draw anybody trusts. Sponsor funds raise what the round can pay out and move it up the scenario grid, so the effect is more winners or a bigger prize, and every entry keeps the weight it earned.",
+            "x": 760,
+            "y": 60,
+            "h": 221
+          },
+          {
+            "id": "sp2-k2",
+            "type": "key",
+            "label": "A sponsored round says so, before the pledge",
+            "notes": "Advertising law, charity law and lottery law all have views on a company underwriting a prize. What must be said, where it must appear and what the round may call itself come from the market's own document, checked when the round opens.",
+            "x": 1100,
+            "y": 60,
+            "h": 189
+          },
+          {
+            "id": "sp2-k3",
+            "type": "key",
+            "label": "The match is held like any pledge",
+            "notes": "A sponsor's money sits in escrow beside the crowd's and moves on the same signal, so a round that resolves without the sponsor paying is impossible rather than a collections problem.",
+            "x": 80,
+            "y": 371,
+            "h": 159
+          }
+        ],
+        "edges": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "rules",
+      "type": "collection",
+      "label": "allocation rules",
+      "notes": "Threshold, first past the post, ranked choice, quadratic, dutch auction, and the weighted random draw. Each is a document with its parameters, chosen when the round opens and frozen the moment it does.",
+      "x": 520,
+      "y": 368,
+      "h": 221,
+      "facts": {
+        "documents": "about 40 kinds",
+        "merge": "field-level: legal, the designer",
+        "indexes": "rule unique; market"
+      },
+      "detail": {
+        "title": "allocation rules",
+        "nodes": [
+          {
+            "id": "ru-c1",
+            "type": "collection",
+            "label": "threshold and all-or-nothing",
+            "notes": "Fund it if the pool clears the number by the clock, and return everything otherwise. The mechanism everybody already knows, kept because it is the right one for a single expensive thing.",
+            "x": 80,
+            "y": 60,
+            "h": 208,
+            "facts": {
+              "documents": "the classic",
+              "merge": "field-level: the designer",
+              "indexes": "rule unique"
+            }
+          },
+          {
+            "id": "ru-c2",
+            "type": "collection",
+            "label": "weighted random draw",
+            "notes": "Every pledge is an entry and the amount weights it. One idea is drawn and funded in full, which funds things a popularity contest would never reach. This is the one the lottery law is about.",
+            "x": 420,
+            "y": 60,
+            "h": 191,
+            "facts": {
+              "documents": "the gamified one",
+              "merge": "field-level: the designer",
+              "indexes": "rule unique"
+            }
+          },
+          {
+            "id": "ru-c3",
+            "type": "collection",
+            "label": "quadratic and ranked",
+            "notes": "Quadratic funding counts the number of backers more than the size of the pledges, so a thing many people want a little beats a thing one person wants a lot. Ranked choice splits a pool across several.",
+            "x": 760,
+            "y": 60,
+            "h": 206,
+            "facts": {
+              "documents": "for many small things",
+              "merge": "field-level: the designer",
+              "indexes": "rule unique"
+            }
+          },
+          {
+            "id": "ru-c4",
+            "type": "collection",
+            "label": "the scenario grid",
+            "notes": "Published with the rule before pledging opens: at each size the round might reach, how many winners there are, what each takes and what the odds per entry are. A backer sees what their joining does to the shape of the round before they join it.",
+            "x": 1100,
+            "y": 60,
+            "h": 221,
+            "facts": {
+              "documents": "one per round",
+              "merge": "field-level: the designer",
+              "indexes": "round unique; band"
+            }
+          },
+          {
+            "id": "ru-k2",
+            "type": "key",
+            "label": "A grid of odds, and never of winners",
+            "notes": "Publishing the outcome for every crowd size looks maximally fair and is maximally steerable: whoever knows their index knows which final count crowns them, and a few entries at the close pick the winner. The grid carries odds; who wins waits for the beacon.",
+            "x": 80,
+            "y": 341,
+            "h": 189
+          },
+          {
+            "id": "ru-k3",
+            "type": "key",
+            "label": "Joining can widen the round",
+            "notes": "In a one-winner draw every arrival thins everybody’s chances, which is what makes a growing crowd feel unfair to the people already in it and to the ones arriving. Banding the winner count to the pool size means crossing a threshold opens another place, so the grid turns growth into something both sides want.",
+            "x": 420,
+            "y": 341,
+            "h": 204
+          },
+          {
+            "id": "ru-k1",
+            "type": "key",
+            "label": "The mechanism is data",
+            "notes": "Forty mechanisms as documents rather than forty code paths means a new one is a write and a market that forbids one is a field. It also means the rule that ran is retrievable by version years later.",
+            "x": 760,
+            "y": 341,
+            "h": 157
+          }
+        ],
+        "edges": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "commit",
+      "type": "collection",
+      "label": "sealed commitments and roots",
+      "notes": "A hash of the seed and the rule before pledging opens, then the entry tree's root republished as the crowd grows. The first says the draw existed beforehand; the rest say when each entry joined it.",
+      "x": 840,
+      "y": 368,
+      "h": 238,
+      "facts": {
+        "documents": "one per round, then hourly",
+        "merge": "append only, per round",
+        "indexes": "round unique; sealed at"
+      },
+      "detail": {
+        "title": "sealed commitments and roots",
+        "nodes": [
+          {
+            "id": "co-f1",
+            "type": "field",
+            "label": "the hash of the seed",
+            "notes": "",
+            "x": 80,
+            "y": 60,
+            "facts": {
+              "setby": "the round, before opening"
+            }
+          },
+          {
+            "id": "co-f2",
+            "type": "field",
+            "label": "the rule, by version",
+            "notes": "",
+            "x": 420,
+            "y": 60,
+            "facts": {
+              "setby": "the round"
+            }
+          },
+          {
+            "id": "co-f3",
+            "type": "field",
+            "label": "when it was sealed",
+            "notes": "",
+            "x": 760,
+            "y": 60,
+            "facts": {
+              "setby": "the write itself"
+            }
+          },
+          {
+            "id": "co-f4",
+            "type": "field",
+            "label": "the seed itself",
+            "notes": "",
+            "x": 1100,
+            "y": 60,
+            "facts": {
+              "setby": "the draw, afterwards"
+            }
+          },
+          {
+            "id": "cm-k1",
+            "type": "key",
+            "label": "Commit first, reveal after",
+            "notes": "Publishing the seed up front would let somebody compute the winner before pledging; publishing nothing would let the platform choose it. A hash first and the seed after gives a number that existed beforehand and can be checked afterwards.",
+            "x": 80,
+            "y": 196,
+            "h": 189
+          },
+          {
+            "id": "cm-k3",
+            "type": "key",
+            "label": "The tree grows, and is anchored as it does",
+            "notes": "A round that runs for a week gathers entries the whole way. Republishing the tree's root as it grows means an entry can be placed in time as well as in the set, so a late joiner is anchored on the way in rather than trusted at the end.",
+            "x": 420,
+            "y": 196,
+            "h": 189
+          },
+          {
+            "id": "cm-k2",
+            "type": "key",
+            "label": "The rule is frozen with it",
+            "notes": "A seed alone proves the randomness. Freezing the rule in the same sealed document proves the question, so a round that fills in an unexpected shape cannot quietly become a different kind of round before it resolves.",
+            "x": 760,
+            "y": 196,
+            "h": 174
+          }
+        ],
+        "edges": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "draw",
+      "type": "pipeline",
+      "label": "Run the allocation",
+      "notes": "Takes the frozen rule, the sealed seed, the beacon's public value and every entry as it stood at close, and produces the allocation. Deterministic: the same inputs give the same answer to anyone who runs it.",
+      "x": 1160,
+      "y": 368,
+      "h": 206,
+      "facts": {
+        "rate": "about 50,000 rounds a year",
+        "lanes": "3",
+        "steps": "5"
+      },
+      "detail": {
+        "title": "Run the allocation",
+        "nodes": [
+          {
+            "id": "dr-s1",
+            "type": "step",
+            "label": "Close the entries",
+            "notes": "The tree's final root goes into the proof. A root fixes the set both ways: nothing joins after it, and nothing that was in it can be quietly left out.",
+            "x": 80,
+            "y": 60,
+            "h": 127
+          },
+          {
+            "id": "dr-s2",
+            "type": "step",
+            "label": "Take the beacon's value",
+            "notes": "A value that appears after the close and that neither the platform nor a backer could have picked.",
+            "x": 420,
+            "y": 60,
+            "h": 112
+          },
+          {
+            "id": "dr-s3",
+            "type": "step",
+            "label": "Reveal the seed",
+            "notes": "Checked against the hash published before pledging opened. A mismatch voids the round rather than the objection.",
+            "x": 760,
+            "y": 60,
+            "h": 112
+          },
+          {
+            "id": "dr-s4",
+            "type": "step",
+            "label": "Run the frozen rule",
+            "notes": "The grid says how many win at the size the round actually reached; the seed and the beacon over the entry tree say which. Deterministic either way: the same inputs give the same answer on anybody's laptop.",
+            "x": 1100,
+            "y": 60,
+            "h": 157
+          },
+          {
+            "id": "dr-s5",
+            "type": "step",
+            "label": "Publish the proof",
+            "notes": "Seed, beacon, entry hash, rule version and result, signed. Money moves after this, never before.",
+            "x": 80,
+            "y": 277,
+            "h": 112
+          },
+          {
+            "id": "dr-k2",
+            "type": "key",
+            "label": "A whole-set hash proves the wrong thing",
+            "notes": "Hashing the entry list as one blob shows nobody was added after the close. It shows a backer nothing about themselves: a pledge quietly left out leaves a hash that still verifies perfectly for everyone who checks it. That gap falls hardest on whoever joined last.",
+            "x": 420,
+            "y": 277,
+            "h": 189
+          },
+          {
+            "id": "dr-k3",
+            "type": "key",
+            "label": "Each entry carries its own path",
+            "notes": "A pledge is a leaf in the tree and the backer is handed the path from it to the root when they make it. Checking that path against the root in the proof is a backer proving their own entry was in the draw, without the round publishing everybody else's.",
+            "x": 760,
+            "y": 277,
+            "h": 189
+          },
+          {
+            "id": "dr-k1",
+            "type": "key",
+            "label": "Deterministic is the whole product",
+            "notes": "A weighted lottery that only its operator can evaluate is asking for trust. One a stranger can rerun on a laptop and get the same answer is asking for arithmetic, which is a much smaller ask.",
+            "x": 1100,
+            "y": 277,
+            "h": 174
+          }
+        ],
+        "edges": [
+          {
+            "id": "draw-l1",
+            "from": "dr-s1",
+            "to": "dr-s2",
+            "label": "",
+            "style": "solid",
+            "step": 1
+          },
+          {
+            "id": "draw-l2",
+            "from": "dr-s2",
+            "to": "dr-s3",
+            "label": "",
+            "style": "solid",
+            "step": 2
+          },
+          {
+            "id": "draw-l3",
+            "from": "dr-s3",
+            "to": "dr-s4",
+            "label": "",
+            "style": "solid",
+            "step": 3
+          },
+          {
+            "id": "draw-l4",
+            "from": "dr-s4",
+            "to": "dr-s5",
+            "label": "",
+            "style": "solid",
+            "step": 4
+          }
+        ],
+        "groups": []
+      }
+    },
+    {
+      "id": "beacon",
+      "type": "system",
+      "label": "The randomness beacon",
+      "notes": "A public randomness beacon whose value appears after the round closes. Mixing it with the sealed seed means the platform could not choose the outcome and the crowd could not predict it.",
+      "x": 1480,
+      "y": 368,
+      "h": 191,
+      "facts": {
+        "owner": "the round integrity lead",
+        "nodes": "one subscriber per region",
+        "part": "the value nobody could pick"
+      }
+    },
+    {
+      "id": "proof",
+      "type": "collection",
+      "label": "draws and their proofs",
+      "notes": "The seed revealed, the beacon value, the entry tree's root, the rule by version and the result. Everything a stranger needs to run the draw again, and everything a backer needs to prove their own entry was in it.",
+      "x": 1800,
+      "y": 368,
+      "h": 206,
+      "facts": {
+        "documents": "about 50,000 a year",
+        "merge": "append only, per draw",
+        "indexes": "draw unique; round"
+      }
+    },
+    {
+      "id": "verify",
+      "type": "app",
+      "label": "Verify it yourself",
+      "notes": "Two checks, both open source. Recompute the whole allocation from the published proof, and check your own receipt's path against the root to prove your entry was in the set that was drawn.",
+      "x": 2120,
+      "y": 368,
+      "h": 206,
+      "facts": {
+        "language": "TypeScript, and a CLI",
+        "api": "the proof, and your receipt",
+        "users": "anyone, including a regulator"
+      }
+    },
+    {
+      "id": "buy",
+      "type": "collection",
+      "label": "group buys",
+      "notes": "A thing the crowd wants at a price that only exists in quantity. The buy holds the item, the window, the tiers and how close the count is to the next break.",
+      "x": 520,
+      "y": 676,
+      "h": 206,
+      "facts": {
+        "documents": "about 30,000 a year",
+        "merge": "field-level: the crowd, the buyer",
+        "indexes": "buy unique; item, window"
+      }
+    },
+    {
+      "id": "tiers",
+      "type": "table",
+      "label": "tier_published",
+      "notes": "The ladder, agreed with the supplier before the crowd forms: at each size, how many units and at what price each. Signed, with a validity window, so a buy opens on a number somebody already stood behind.",
+      "x": 840,
+      "y": 676,
+      "h": 206,
+      "facts": {
+        "rows": "about 2 million",
+        "partitions": "supplier, item",
+        "cadence": "before each window"
+      },
+      "detail": {
+        "title": "tier_published",
+        "nodes": [
+          {
+            "id": "ti-f1",
+            "type": "field",
+            "label": "at this many backers",
+            "notes": "",
+            "x": 80,
+            "y": 60,
+            "facts": {
+              "setby": "the negotiation"
+            }
+          },
+          {
+            "id": "ti-f2",
+            "type": "field",
+            "label": "this many units",
+            "notes": "",
+            "x": 420,
+            "y": 60,
+            "facts": {
+              "setby": "the negotiation"
+            }
+          },
+          {
+            "id": "ti-f3",
+            "type": "field",
+            "label": "at this price each",
+            "notes": "",
+            "x": 760,
+            "y": 60,
+            "facts": {
+              "setby": "the supplier"
+            }
+          },
+          {
+            "id": "ti-f4",
+            "type": "field",
+            "label": "valid until",
+            "notes": "",
+            "x": 1100,
+            "y": 60,
+            "facts": {
+              "setby": "the supplier"
+            }
+          },
+          {
+            "id": "ti-f5",
+            "type": "field",
+            "label": "the supplier's signature",
+            "notes": "",
+            "x": 80,
+            "y": 196,
+            "facts": {
+              "setby": "the supplier's own node"
+            }
+          },
+          {
+            "id": "ti-k1",
+            "type": "key",
+            "label": "Negotiated before the crowd exists",
+            "notes": "A group buy that gathers a crowd and then goes shopping tells people what they paid afterwards. Agreeing the ladder first, signed and dated, opens the window on a price the supplier already stood behind.",
+            "x": 420,
+            "y": 196,
+            "h": 174
+          },
+          {
+            "id": "ti-k2",
+            "type": "key",
+            "label": "Crowd size to units, and the units can outrun it",
+            "notes": "The ladder maps headcount to quantity as well as price, and the two can move apart: a band that crosses a container load buys more units than there are backers, and the surplus goes where the crowd voted.",
+            "x": 760,
+            "y": 196,
+            "h": 174
+          },
+          {
+            "id": "ti-k3",
+            "type": "key",
+            "label": "The same shape as the scenario grid",
+            "notes": "The draw's grid says how many win at each size; the ladder says how many units at each size and what each costs. A backer deciding whether to join reads one page that answers both, which is what makes joining a judgement rather than a hope.",
+            "x": 1100,
+            "y": 196,
+            "h": 189
+          },
+          {
+            "id": "ti-k4",
+            "type": "key",
+            "label": "A ladder that expires",
+            "notes": "Steel moves, freight moves, a supplier's year moves. Every version carries the date it lapses and the volume it covers, so a buy opens only against a quote that is still good.",
+            "x": 80,
+            "y": 445,
+            "h": 142
+          }
+        ],
+        "edges": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "counter",
+      "type": "collection",
+      "label": "commitments, counted",
+      "notes": "How many are committed right now. Four thousand people join in the same minute when a window opens, and an additive counter takes all of it without any of them waiting behind the others.",
+      "x": 1160,
+      "y": 676,
+      "h": 206,
+      "facts": {
+        "documents": "about 30,000 counts",
+        "merge": "additive counters on the count",
+        "indexes": "buy unique; item"
+      },
+      "detail": {
+        "title": "commitments, counted",
+        "nodes": [
+          {
+            "id": "cn-f1",
+            "type": "field",
+            "label": "how many are committed",
+            "notes": "",
+            "x": 80,
+            "y": 60,
+            "facts": {
+              "setby": "every backer who joins"
+            }
+          },
+          {
+            "id": "cn-f2",
+            "type": "field",
+            "label": "which tier that reaches",
+            "notes": "",
+            "x": 420,
+            "y": 60,
+            "facts": {
+              "setby": "tier_published"
+            }
+          },
+          {
+            "id": "cn-f3",
+            "type": "field",
+            "label": "what each has put in",
+            "notes": "",
+            "x": 760,
+            "y": 60,
+            "facts": {
+              "setby": "the pledge"
+            }
+          },
+          {
+            "id": "cn-k1",
+            "type": "key",
+            "label": "Four thousand in the same minute",
+            "notes": "A window opening is the most concurrent moment the platform has. The count is an additive counter, so every join adds and none of them queues behind a lock, which is exactly the shape a flash sale breaks on elsewhere.",
+            "x": 1100,
+            "y": 60,
+            "h": 174
+          },
+          {
+            "id": "cn-k2",
+            "type": "key",
+            "label": "The tier is reached, not granted",
+            "notes": "The count crossing a break unlocks the price the supplier itself published, with its own start and end. What the crowd pays is a number the supplier stood behind before anybody joined.",
+            "x": 80,
+            "y": 294,
+            "h": 159
+          }
+        ],
+        "edges": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "window",
+      "type": "schedule",
+      "label": "When a window opens and closes",
+      "notes": "Some windows close on a clock and some the moment a tier is reached. Both are written before the window opens, because a window that can be extended quietly is not a window.",
+      "x": 1480,
+      "y": 676,
+      "h": 208,
+      "facts": {
+        "cadence": "per buy, announced",
+        "window": "minutes to a fortnight",
+        "trigger": "the tier, or the clock"
+      }
+    },
+    {
+      "id": "supplier",
+      "type": "fleet",
+      "label": "A library per supplier",
+      "notes": "Each supplier joins a library shared with the platform alone, holding its tiers, the orders placed against them and what it shipped. One document per order that both sides write to.",
+      "x": 1800,
+      "y": 676,
+      "h": 221,
+      "facts": {
+        "nodes": "about 3,000 suppliers",
+        "sites": "their systems and their docks",
+        "library": "one shared with the platform"
+      }
+    },
+    {
+      "id": "po",
+      "type": "collection",
+      "label": "purchase orders",
+      "notes": "When the window closes the system places the order itself, at the tier the count actually reached, against the quote the supplier published. No haggling after the fact, because the price was a published version.",
+      "x": 2120,
+      "y": 676,
+      "h": 236,
+      "facts": {
+        "documents": "about 30,000 a year",
+        "merge": "field-level: platform, supplier",
+        "indexes": "order unique; buy, supplier"
+      }
+    },
+    {
+      "id": "dest",
+      "type": "collection",
+      "label": "destinations proposed",
+      "notes": "Where the crowd could send it: a school, a shelter, a repair café, a member's address, a hub for onward split. Anybody in the buy may propose one, with a reason and a cost to reach it.",
+      "x": 520,
+      "y": 982,
+      "h": 206,
+      "facts": {
+        "documents": "about 200,000 a year",
+        "merge": "field-level: whoever proposed",
+        "indexes": "destination unique; buy"
+      }
+    },
+    {
+      "id": "vote",
+      "type": "pipeline",
+      "label": "The crowd decides where",
+      "notes": "Ranked choice over the proposed destinations, weighted by what each backer put in, closing on a published clock. The result is a document, not a thread, and the freight cost of each option is on the ballot.",
+      "x": 840,
+      "y": 982,
+      "h": 206,
+      "facts": {
+        "rate": "about 30,000 buys a year",
+        "lanes": "2",
+        "steps": "4"
+      },
+      "detail": {
+        "title": "The crowd decides where",
+        "nodes": [
+          {
+            "id": "vo-s1",
+            "type": "step",
+            "label": "Anybody in the buy proposes",
+            "notes": "A school, a shelter, a repair café, a member's address, a hub to split from. With a reason, and an address.",
+            "x": 80,
+            "y": 60,
+            "h": 129
+          },
+          {
+            "id": "vo-s2",
+            "type": "step",
+            "label": "Price the freight to each",
+            "notes": "What it costs to reach each one goes on the ballot, because a destination nobody can afford is not really on it.",
+            "x": 420,
+            "y": 60,
+            "h": 129
+          },
+          {
+            "id": "vo-s3",
+            "type": "step",
+            "label": "Rank them, weighted",
+            "notes": "Weighted by what each backer put in, closing on a clock published when the vote opened.",
+            "x": 760,
+            "y": 60,
+            "h": 112
+          },
+          {
+            "id": "vo-s4",
+            "type": "step",
+            "label": "It becomes an address",
+            "notes": "The result is a document with the tally on it, and the shipment is created against it.",
+            "x": 1100,
+            "y": 60,
+            "h": 112
+          },
+          {
+            "id": "vo-k1",
+            "type": "key",
+            "label": "A decision, rather than a thread",
+            "notes": "Crowds decide things in comment threads and then argue about what was decided. A ranked vote that closes on a published clock and writes its tally leaves an answer that can be read a year later.",
+            "x": 80,
+            "y": 249,
+            "h": 174
+          }
+        ],
+        "edges": [
+          {
+            "id": "vote-l1",
+            "from": "vo-s1",
+            "to": "vo-s2",
+            "label": "",
+            "style": "solid",
+            "step": 1
+          },
+          {
+            "id": "vote-l2",
+            "from": "vo-s2",
+            "to": "vo-s3",
+            "label": "",
+            "style": "solid",
+            "step": 2
+          },
+          {
+            "id": "vote-l3",
+            "from": "vo-s3",
+            "to": "vo-s4",
+            "label": "",
+            "style": "solid",
+            "step": 3
+          }
+        ],
+        "groups": []
+      }
+    },
+    {
+      "id": "ship",
+      "type": "collection",
+      "label": "shipments",
+      "notes": "What left the supplier, on whose truck, to the address the vote chose, and who signed for it. A photograph at the door closes the round for everybody who paid into it.",
+      "x": 1480,
+      "y": 982,
+      "h": 206,
+      "facts": {
+        "documents": "about 30,000 a year",
+        "merge": "field-level: carrier, receiver",
+        "indexes": "shipment unique; order"
+      }
+    },
+    {
+      "id": "logistics",
+      "type": "system",
+      "label": "Carriers and freight",
+      "notes": "Pallet and parcel carriers, customs where a border is crossed, and the quotes that were on the ballot. The engine holds what the crowd decided; this books the truck.",
+      "x": 1800,
+      "y": 982,
+      "h": 191,
+      "facts": {
+        "owner": "the fulfilment lead",
+        "nodes": "one per region",
+        "part": "what moves the pallet"
+      }
+    },
+    {
+      "id": "escrow",
+      "type": "app",
+      "label": "Escrow and payouts",
+      "notes": "Holds every pledge from the moment it is made until the round resolves, then pays the supplier, refunds what was left over, and does neither until the draw's proof is published.",
+      "x": 2120,
+      "y": 982,
+      "h": 206,
+      "facts": {
+        "language": "Go, beside the region node",
+        "api": "banks and card networks",
+        "users": "backers and 3,000 suppliers"
+      },
+      "detail": {
+        "title": "Escrow and payouts",
+        "nodes": [
+          {
+            "id": "es-k1",
+            "type": "key",
+            "label": "Money moves after the proof",
+            "notes": "The escrow reads the proof before it pays anybody. That ordering is the whole guarantee: a result nobody could check would otherwise be a result nobody could challenge before the money had gone.",
+            "x": 80,
+            "y": 60,
+            "h": 174
+          },
+          {
+            "id": "es-p1",
+            "type": "pipeline",
+            "label": "Refunds and returns",
+            "notes": "A round that stays under its threshold returns every pledge to where it came from, in the currency it arrived in. A damaged pallet becomes a claim against the supplier on the order both sides wrote.",
+            "x": 420,
+            "y": 60,
+            "h": 206,
+            "facts": {
+              "rate": "about 8,000 rounds a year",
+              "lanes": "2",
+              "steps": "4"
+            }
+          },
+          {
+            "id": "es-k2",
+            "type": "key",
+            "label": "Refunds go back the way they came",
+            "notes": "A round under its threshold returns every pledge to the card, wallet or account it arrived from. The ledger already holds each movement in sequence, so the reversal is a read rather than an investigation.",
+            "x": 760,
+            "y": 60,
+            "h": 174
+          }
+        ],
+        "edges": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "split",
+      "type": "collection",
+      "label": "how the pallet is broken up",
+      "notes": "One drop and the crowd sorts it, a hub people collect from, or the platform breaking bulk and posting every share for a fee. The model is chosen with the destination, priced beside it, and names who is holding the goods.",
+      "x": 1160,
+      "y": 982,
+      "h": 238,
+      "facts": {
+        "documents": "about 30,000 a year",
+        "merge": "field-level: the crowd, the captain",
+        "indexes": "split unique; buy"
+      },
+      "detail": {
+        "title": "how the pallet is broken up",
+        "nodes": [
+          {
+            "id": "sp-c1",
+            "type": "collection",
+            "label": "one drop, the crowd sorts it",
+            "notes": "The pallet goes to one address and members come for their share. A captain from the buy receives it and hands it out, and the freight is a single leg. Cheapest by a distance, and it asks the most of everybody.",
+            "x": 80,
+            "y": 60,
+            "h": 223,
+            "facts": {
+              "documents": "the cheapest model",
+              "merge": "field-level: the captain",
+              "indexes": "split unique"
+            }
+          },
+          {
+            "id": "sp-c2",
+            "type": "collection",
+            "label": "a hub people collect from",
+            "notes": "A shop, a locker bank or a partner depot takes the pallet and holds each share for a collection window. Somebody is paid to be accountable for the goods, and nobody has to be at home.",
+            "x": 420,
+            "y": 60,
+            "h": 208,
+            "facts": {
+              "documents": "the middle model",
+              "merge": "field-level: the hub",
+              "indexes": "split unique; hub"
+            }
+          },
+          {
+            "id": "sp-c3",
+            "type": "collection",
+            "label": "we break bulk and post it",
+            "notes": "The pallet comes to our depot, every share is picked, packed and posted, and the fee is on the ballot before anybody votes for it. The most expensive option and the only one where a backer does nothing.",
+            "x": 760,
+            "y": 60,
+            "h": 223,
+            "facts": {
+              "documents": "the platform model",
+              "merge": "field-level: the platform",
+              "indexes": "split unique; fee"
+            }
+          },
+          {
+            "id": "sp-c4",
+            "type": "collection",
+            "label": "a fulfilment partner does it",
+            "notes": "A 3PL that already holds a library with the platform takes the pallet, breaks it and ships. Useful where the crowd is far from our depots, and it is the same documents with a different party writing them.",
+            "x": 1100,
+            "y": 60,
+            "h": 223,
+            "facts": {
+              "documents": "the third-party model",
+              "merge": "field-level: the partner",
+              "indexes": "split unique; partner"
+            }
+          },
+          {
+            "id": "sp-k1",
+            "type": "key",
+            "label": "The model is on the ballot, priced",
+            "notes": "Where it goes and how it is split are one decision, because the answer to each changes the cost of the other. A vote that shows a school at no cost beside every-share-posted at nine pounds a head is a crowd choosing with its eyes open.",
+            "x": 80,
+            "y": 343,
+            "h": 189
+          },
+          {
+            "id": "sp-k2",
+            "type": "key",
+            "label": "Somebody is always holding it",
+            "notes": "A pallet on a driveway belongs to somebody. Each model names who takes custody and when, and every handover is a signed write with a photograph, closing the gap between the carrier's proof of delivery and a backer's share.",
+            "x": 420,
+            "y": 343,
+            "h": 174
+          },
+          {
+            "id": "sp-k3",
+            "type": "key",
+            "label": "Our fee is a line, not a margin",
+            "notes": "The platform doing the distribution is one option among four, priced per share and shown beside the others. A crowd that finds it dear picks a hub, which is the check that keeps the number fair.",
+            "x": 760,
+            "y": 343,
+            "h": 174
+          }
+        ],
+        "edges": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "law",
+      "type": "collection",
+      "label": "rules by jurisdiction",
+      "notes": "A paid entry into a random allocation is a lottery in many countries and regulated in most of the rest. This says which mechanisms a market may run, what has to be disclosed and what a round may call itself.",
+      "x": 520,
+      "y": 1290,
+      "h": 221,
+      "facts": {
+        "documents": "about 200",
+        "merge": "field-level: legal, per market",
+        "indexes": "market unique; mechanism"
+      },
+      "detail": {
+        "title": "rules by jurisdiction",
+        "nodes": [
+          {
+            "id": "la-f1",
+            "type": "field",
+            "label": "which mechanisms are allowed",
+            "notes": "",
+            "x": 80,
+            "y": 60,
+            "h": 97,
+            "facts": {
+              "setby": "legal, per market"
+            }
+          },
+          {
+            "id": "la-f2",
+            "type": "field",
+            "label": "what must be disclosed",
+            "notes": "",
+            "x": 420,
+            "y": 60,
+            "facts": {
+              "setby": "legal"
+            }
+          },
+          {
+            "id": "la-f3",
+            "type": "field",
+            "label": "what it may be called",
+            "notes": "",
+            "x": 760,
+            "y": 60,
+            "facts": {
+              "setby": "legal"
+            }
+          },
+          {
+            "id": "la-f4",
+            "type": "field",
+            "label": "who may enter",
+            "notes": "",
+            "x": 1100,
+            "y": 60,
+            "facts": {
+              "setby": "legal"
+            }
+          },
+          {
+            "id": "la-k1",
+            "type": "key",
+            "label": "A paid random draw is a lottery",
+            "notes": "The gamified mechanism is the interesting one and the one that needs a licence, a charity structure or a free entry route depending on the market. Holding that per market means a round is gated before it opens rather than argued about after.",
+            "x": 80,
+            "y": 217,
+            "h": 189
+          },
+          {
+            "id": "la-k2",
+            "type": "key",
+            "label": "The gate is on opening",
+            "notes": "The rule is chosen when the round opens and the market's law is read then, so a backer in a market that forbids a mechanism is never shown the round. Compliance as a query rather than a disclaimer.",
+            "x": 420,
+            "y": 217,
+            "h": 157
+          }
+        ],
+        "edges": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "ledger",
+      "type": "collection",
+      "label": "the money ledger",
+      "notes": "Every pledge, hold, release, payout and refund, in sequence and signed. The same shape a regulator asks for, and the thing a backer's own statement is rendered from.",
+      "x": 840,
+      "y": 1290,
+      "h": 221,
+      "facts": {
+        "documents": "about 200 million a year",
+        "merge": "append only, per entry",
+        "indexes": "entry unique; round, sequence"
+      },
+      "detail": {
+        "title": "the money ledger",
+        "nodes": [
+          {
+            "id": "le-f1",
+            "type": "field",
+            "label": "what moved",
+            "notes": "",
+            "x": 80,
+            "y": 60,
+            "facts": {
+              "setby": "the escrow"
+            }
+          },
+          {
+            "id": "le-f2",
+            "type": "field",
+            "label": "in what order",
+            "notes": "",
+            "x": 420,
+            "y": 60,
+            "facts": {
+              "setby": "the write"
+            }
+          },
+          {
+            "id": "le-f3",
+            "type": "field",
+            "label": "signed by",
+            "notes": "",
+            "x": 760,
+            "y": 60,
+            "facts": {
+              "setby": "the node that wrote it"
+            }
+          },
+          {
+            "id": "le-k1",
+            "type": "key",
+            "label": "A statement is a rendering",
+            "notes": "A backer's statement, the supplier's remittance and the regulator's report are three views of one sequence rather than three systems that have to agree. Where they would disagree, there is nothing to disagree with.",
+            "x": 1100,
+            "y": 60,
+            "h": 174
+          }
+        ],
+        "edges": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "bi",
+      "type": "bi",
+      "label": "Round dashboards",
+      "notes": "Fill rates by mechanism, how a weighted draw actually distributed against how it was meant to, which categories attract the crowd, and how long a group buy takes to reach its next tier.",
+      "x": 1160,
+      "y": 1290,
+      "h": 191,
+      "facts": {
+        "tool": "Power BI",
+        "wire": "PostgreSQL wire",
+        "mode": "distributed SQL"
+      }
+    },
+    {
+      "id": "agent",
+      "type": "agent",
+      "label": "Round agent over MCP",
+      "notes": "Reads the last hundred rounds, the fill rates and the supplier quotes, and drafts the next round: the mechanism, the threshold and the window. A person opens it, because opening is a commitment.",
+      "x": 1480,
+      "y": 1290,
+      "h": 206,
+      "facts": {
+        "agent": "Claude Code",
+        "tools": "rounds, proofs, suppliers",
+        "transport": "MCP"
+      }
+    },
+    {
+      "id": "disputes",
+      "type": "collection",
+      "label": "disputes and appeals",
+      "notes": "Somebody says the draw was wrong, the goods were short, or the destination vote was gamed. Each is answered against the published proof and the signed ledger rather than against a memory.",
+      "x": 1800,
+      "y": 1290,
+      "h": 206,
+      "facts": {
+        "documents": "about 20,000 a year",
+        "merge": "field-level: backer, the panel",
+        "indexes": "dispute unique; round"
+      }
+    },
+    {
+      "id": "archive",
+      "type": "s3",
+      "label": "Closed rounds and proofs",
+      "notes": "Every closed round with its proof, its ledger and its shipment, landed as parquet and attached as a store, so a draw from four years ago can still be recomputed by anybody who cares to.",
+      "x": 2120,
+      "y": 1290,
+      "h": 191,
+      "facts": {
+        "bucket": "round-history",
+        "size": "tens of terabytes",
+        "tier": "cold after a year"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "from": "app",
+      "to": "pledge",
+      "label": "somebody backs it",
+      "style": "solid",
+      "step": 3
+    },
+    {
+      "id": "e2",
+      "from": "people",
+      "to": "pledge",
+      "label": "signed by their device",
+      "style": "solid",
+      "kind": "read"
+    },
+    {
+      "id": "e3",
+      "from": "mandate",
+      "to": "pledge",
+      "label": "raises one each payday",
+      "style": "solid",
+      "step": 3
+    },
+    {
+      "id": "e46",
+      "from": "people",
+      "to": "mandate",
+      "label": "whose it is, and their ceiling",
+      "style": "solid",
+      "kind": "read"
+    },
+    {
+      "id": "e47",
+      "from": "mandate",
+      "to": "escrow",
+      "label": "collected on the cadence",
+      "style": "solid",
+      "kind": "sync",
+      "step": 3
+    },
+    {
+      "id": "e48",
+      "from": "law",
+      "to": "mandate",
+      "label": "notice, and the right to stop",
+      "style": "solid",
+      "kind": "read"
+    },
+    {
+      "id": "e4",
+      "from": "rules",
+      "to": "pool",
+      "label": "the mechanism, frozen",
+      "style": "solid",
+      "kind": "read",
+      "step": 1
+    },
+    {
+      "id": "e5",
+      "from": "law",
+      "to": "rules",
+      "label": "what this market may run",
+      "style": "solid",
+      "kind": "read",
+      "step": 1
+    },
+    {
+      "id": "e6",
+      "from": "pool",
+      "to": "commit",
+      "label": "seal the seed first",
+      "style": "solid",
+      "step": 2
+    },
+    {
+      "id": "e7",
+      "from": "pledge",
+      "to": "pool",
+      "label": "into the round",
+      "style": "solid",
+      "kind": "sync",
+      "step": 3
+    },
+    {
+      "id": "e8",
+      "from": "sponsor",
+      "to": "pool",
+      "label": "matched, capped, disclosed",
+      "style": "solid",
+      "kind": "sync",
+      "step": 3
+    },
+    {
+      "id": "e9",
+      "from": "people",
+      "to": "pledge",
+      "label": "standing weights the entry",
+      "style": "solid",
+      "kind": "read"
+    },
+    {
+      "id": "e49",
+      "from": "people",
+      "to": "escrow",
+      "label": "referral credit, when it vests",
+      "style": "solid",
+      "kind": "sync"
+    },
+    {
+      "id": "e50",
+      "from": "supplier",
+      "to": "buy",
+      "label": "the ladder, agreed first",
+      "style": "solid",
+      "kind": "read",
+      "step": 7
+    },
+    {
+      "id": "e44",
+      "from": "law",
+      "to": "sponsor",
+      "label": "what must be disclosed",
+      "style": "solid",
+      "kind": "read"
+    },
+    {
+      "id": "e45",
+      "from": "sponsor",
+      "to": "escrow",
+      "label": "the match, held like any pledge",
+      "style": "solid",
+      "kind": "sync",
+      "step": 11
+    },
+    {
+      "id": "e10",
+      "from": "pool",
+      "to": "draw",
+      "label": "at close",
+      "style": "solid",
+      "step": 4
+    },
+    {
+      "id": "e11",
+      "from": "commit",
+      "to": "draw",
+      "label": "the seed, revealed",
+      "style": "solid",
+      "kind": "read",
+      "step": 4
+    },
+    {
+      "id": "e12",
+      "from": "beacon",
+      "to": "draw",
+      "label": "a value nobody picked",
+      "style": "solid",
+      "kind": "read",
+      "step": 4
+    },
+    {
+      "id": "e13",
+      "from": "draw",
+      "to": "proof",
+      "label": "everything needed to redo it",
+      "style": "solid",
+      "step": 5
+    },
+    {
+      "id": "e14",
+      "from": "proof",
+      "to": "verify",
+      "label": "anyone can recompute",
+      "style": "solid",
+      "kind": "read",
+      "step": 6
+    },
+    {
+      "id": "e15",
+      "from": "proof",
+      "to": "escrow",
+      "label": "money moves after the proof",
+      "style": "solid",
+      "step": 6
+    },
+    {
+      "id": "e16",
+      "from": "draw",
+      "to": "buy",
+      "label": "a funded thing to buy",
+      "style": "solid",
+      "step": 7
+    },
+    {
+      "id": "e17",
+      "from": "tiers",
+      "to": "buy",
+      "label": "the price in quantity",
+      "style": "solid",
+      "kind": "read"
+    },
+    {
+      "id": "e18",
+      "from": "counter",
+      "to": "buy",
+      "label": "how many so far",
+      "style": "solid",
+      "kind": "sync"
+    },
+    {
+      "id": "e19",
+      "from": "window",
+      "to": "buy",
+      "label": "when it closes",
+      "style": "solid",
+      "kind": "read",
+      "step": 7
+    },
+    {
+      "id": "e20",
+      "from": "buy",
+      "to": "po",
+      "label": "the order, at the tier reached",
+      "style": "solid",
+      "step": 8
+    },
+    {
+      "id": "e21",
+      "from": "po",
+      "to": "supplier",
+      "label": "into their library",
+      "style": "solid",
+      "kind": "sync",
+      "step": 8
+    },
+    {
+      "id": "e22",
+      "from": "supplier",
+      "to": "tiers",
+      "label": "publishes its own quote",
+      "style": "solid",
+      "kind": "sync"
+    },
+    {
+      "id": "e23",
+      "from": "buy",
+      "to": "dest",
+      "label": "where could it go",
+      "style": "solid",
+      "step": 9
+    },
+    {
+      "id": "e24",
+      "from": "dest",
+      "to": "vote",
+      "label": "ranked, and weighted",
+      "style": "solid",
+      "step": 9
+    },
+    {
+      "id": "e25",
+      "from": "logistics",
+      "to": "dest",
+      "label": "what each would cost",
+      "style": "solid",
+      "kind": "read"
+    },
+    {
+      "id": "e26",
+      "from": "vote",
+      "to": "ship",
+      "label": "the address it chose",
+      "style": "solid",
+      "step": 10
+    },
+    {
+      "id": "e27",
+      "from": "po",
+      "to": "ship",
+      "label": "what left the dock",
+      "style": "solid",
+      "kind": "sync",
+      "step": 10
+    },
+    {
+      "id": "e28",
+      "from": "ship",
+      "to": "logistics",
+      "label": "booked on a truck",
+      "style": "solid",
+      "step": 10
+    },
+    {
+      "id": "e29",
+      "from": "escrow",
+      "to": "po",
+      "label": "pays the supplier",
+      "style": "solid",
+      "step": 11
+    },
+    {
+      "id": "e30",
+      "from": "escrow",
+      "to": "ledger",
+      "label": "every movement, signed",
+      "style": "solid",
+      "kind": "sync",
+      "step": 11
+    },
+    {
+      "id": "e31",
+      "from": "split",
+      "to": "vote",
+      "label": "priced onto the same ballot",
+      "style": "solid",
+      "kind": "read",
+      "step": 9
+    },
+    {
+      "id": "e32",
+      "from": "split",
+      "to": "ship",
+      "label": "one drop, or many",
+      "style": "solid",
+      "step": 10
+    },
+    {
+      "id": "e42",
+      "from": "split",
+      "to": "escrow",
+      "label": "the fee, if we do it",
+      "style": "solid",
+      "step": 11
+    },
+    {
+      "id": "e43",
+      "from": "split",
+      "to": "people",
+      "label": "who is holding it",
+      "style": "solid",
+      "kind": "read"
+    },
+    {
+      "id": "e33",
+      "from": "proof",
+      "to": "disputes",
+      "label": "answered against the proof",
+      "style": "solid",
+      "kind": "read"
+    },
+    {
+      "id": "e34",
+      "from": "ledger",
+      "to": "disputes",
+      "label": "and the signed ledger",
+      "style": "solid",
+      "kind": "read"
+    },
+    {
+      "id": "e35",
+      "from": "ledger",
+      "to": "bi",
+      "label": "distributed SQL",
+      "style": "solid",
+      "kind": "read"
+    },
+    {
+      "id": "e36",
+      "from": "proof",
+      "to": "bi",
+      "label": "how it actually fell",
+      "style": "solid",
+      "kind": "read"
+    },
+    {
+      "id": "e37",
+      "from": "agent",
+      "to": "rules",
+      "label": "drafts the next round",
+      "style": "solid",
+      "step": 1
+    },
+    {
+      "id": "e38",
+      "from": "proof",
+      "to": "archive",
+      "label": "after a year",
+      "style": "solid",
+      "kind": "sync"
+    },
+    {
+      "id": "e39",
+      "from": "law",
+      "to": "app",
+      "label": "what a backer here may see",
+      "style": "solid",
+      "kind": "read"
+    }
+  ],
+  "groups": [
+    {
+      "id": "g1",
+      "label": "The crowd, and what it wants",
+      "x": 480,
+      "y": 16,
+      "w": 1960,
+      "h": 302,
+      "color": "sky"
+    },
+    {
+      "id": "g2",
+      "label": "How the money is allocated",
+      "x": 480,
+      "y": 324,
+      "w": 1960,
+      "h": 302,
+      "color": "amber"
+    },
+    {
+      "id": "g3",
+      "label": "Buying it together",
+      "x": 480,
+      "y": 632,
+      "w": 1960,
+      "h": 300,
+      "color": "rose"
+    },
+    {
+      "id": "g4",
+      "label": "Where it goes",
+      "x": 480,
+      "y": 938,
+      "w": 1960,
+      "h": 302,
+      "color": "violet"
+    },
+    {
+      "id": "g5",
+      "label": "Keeping it straight",
+      "x": 480,
+      "y": 1246,
+      "w": 1960,
+      "h": 285,
+      "color": "slate"
+    }
+  ],
+  "legend": true,
+  "process": {
+    "title": "",
+    "nodes": [
+      {
+        "id": "policy1",
+        "type": "policy",
+        "label": "What a draw must publish, and where it may run",
+        "notes": "A round seals a hash of its seed and the rule by version before pledging opens, and publishes the seed, the beacon value, the hashed entry set, the rule version and the result when it closes. Escrow reads that proof before it moves money. Which mechanisms a market may run, what has to be disclosed and who may enter are documents per jurisdiction, read when a round is created, so a backer is never",
+        "x": 480,
+        "y": 40,
+        "h": 332,
+        "facts": {
+          "sets": "the boundary of a round",
+          "ownedby": "the integrity lead, and legal",
+          "version": "signed per market, per mechanism"
+        },
+        "on": [
+          "commit",
+          "proof",
+          "law",
+          "escrow",
+          "verify"
+        ]
+      },
+      {
+        "id": "proc1",
+        "type": "process",
+        "label": "A round, and a draw anybody can recheck",
+        "notes": "Open it: a mechanism chosen and frozen, a seed sealed before anybody may pledge, entries gathering for a week, a public beacon nobody could pick, a deterministic draw, and a proof published before a penny moves.",
+        "x": 100,
+        "y": 300,
+        "h": 272,
+        "facts": {
+          "owner": "the round integrity lead",
+          "cases": "about 50,000 rounds a year",
+          "cycle": "a week, then seconds"
+        },
+        "on": [
+          "rules",
+          "law",
+          "pool",
+          "commit",
+          "pledge",
+          "beacon",
+          "draw",
+          "proof",
+          "verify",
+          "escrow"
+        ],
+        "detail": {
+          "title": "A round, and a draw anybody can recheck",
+          "nodes": [
+            {
+              "id": "ev-a1",
+              "type": "event",
+              "label": "A round is opened",
+              "notes": "",
+              "x": 540,
+              "y": 40,
+              "h": 174,
+              "facts": {
+                "source": "the operator, or the agent's draft",
+                "rate": "about 50,000 a year",
+                "carries": "mechanism, threshold, clock"
+              },
+              "on": [
+                "pool",
+                "rules"
+              ]
+            },
+            {
+              "id": "gt-a1",
+              "type": "gate",
+              "label": "May this market run it?",
+              "notes": "A paid random draw is a lottery in many countries. The gate is at opening, so a backer in a market that forbids it never sees the round at all.",
+              "x": 540,
+              "y": 270,
+              "h": 274,
+              "facts": {
+                "rule": "the jurisdiction's own document",
+                "approver": "the law collection, at opening",
+                "limit": "a forbidden mechanism is never shown"
+              },
+              "on": [
+                "law",
+                "rules",
+                "app"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-a1",
+              "type": "stage",
+              "label": "Seal the seed and the rule",
+              "notes": "A hash of the seed and the rule by version, signed and published. The numbers behind the draw now exist and nobody has seen an entry.",
+              "x": 540,
+              "y": 600,
+              "h": 246,
+              "facts": {
+                "actor": "the round",
+                "system": "sealed commitments",
+                "touch": "before opening"
+              },
+              "on": [
+                "commit",
+                "pool"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-a2",
+              "type": "stage",
+              "label": "Pledges arrive",
+              "notes": "Each names the round, the amount and the idea it favours, and each is signed by the backer's own device.",
+              "x": 980,
+              "y": 40,
+              "h": 214,
+              "facts": {
+                "actor": "the crowd",
+                "system": "pledges, signed per device",
+                "touch": "a week"
+              },
+              "on": [
+                "pledge",
+                "people",
+                "app"
+              ],
+              "by": "person"
+            },
+            {
+              "id": "st-a3",
+              "type": "stage",
+              "label": "Standing weights them",
+              "notes": "Awards are writes on the backer, so the weight an entry carries is a number a backer can read rather than a feeling the interface gives them.",
+              "x": 980,
+              "y": 310,
+              "h": 244,
+              "facts": {
+                "actor": "the platform",
+                "system": "streaks, tiers, multipliers",
+                "touch": "on every pledge"
+              },
+              "on": [
+                "people",
+                "pledge"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-a4",
+              "type": "stage",
+              "label": "Close, and hash the entries",
+              "notes": "The set is hashed at close and the hash goes into the proof, so the list cannot grow afterwards.",
+              "x": 980,
+              "y": 610,
+              "h": 231,
+              "facts": {
+                "actor": "the round",
+                "system": "the entry set",
+                "touch": "on the clock"
+              },
+              "on": [
+                "pool",
+                "pledge",
+                "draw"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-a5",
+              "type": "stage",
+              "label": "Take the beacon, reveal the seed",
+              "notes": "A public value that appeared after the close, mixed with a seed checked against the hash published before opening. A mismatch voids the round.",
+              "x": 1420,
+              "y": 40,
+              "h": 261,
+              "facts": {
+                "actor": "the draw pipeline",
+                "system": "the beacon, the commitment",
+                "touch": "seconds"
+              },
+              "on": [
+                "beacon",
+                "commit",
+                "draw"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-a6",
+              "type": "stage",
+              "label": "Run the frozen rule",
+              "notes": "Deterministic over the hashed entry set. The same inputs give the same allocation on anybody's laptop.",
+              "x": 1420,
+              "y": 357,
+              "h": 214,
+              "facts": {
+                "actor": "the draw pipeline",
+                "system": "the rule, by version",
+                "touch": "seconds"
+              },
+              "on": [
+                "draw",
+                "rules"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-a7",
+              "type": "stage",
+              "label": "Publish the proof, then pay",
+              "notes": "Seed, beacon, entry hash, rule version and result. The escrow reads the proof before it moves a penny, which is the ordering the whole guarantee rests on.",
+              "x": 1420,
+              "y": 627,
+              "h": 276,
+              "facts": {
+                "actor": "the round, then escrow",
+                "system": "proofs, then the ledger",
+                "touch": "instant"
+              },
+              "on": [
+                "proof",
+                "verify",
+                "escrow",
+                "ledger"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "sla-a1",
+              "type": "sla",
+              "label": "Every draw recomputes to the same answer",
+              "notes": "",
+              "x": 1420,
+              "y": 959,
+              "h": 191,
+              "facts": {
+                "measure": "independent recomputations that agree",
+                "target": "100 in 100",
+                "onmiss": "the round is void, and says so"
+              },
+              "on": [
+                "proof",
+                "verify"
+              ]
+            }
+          ],
+          "edges": [
+            {
+              "id": "a1",
+              "from": "ev-a1",
+              "to": "gt-a1",
+              "label": "opened",
+              "style": "solid",
+              "step": 1
+            },
+            {
+              "id": "a2",
+              "from": "gt-a1",
+              "to": "st-a1",
+              "label": "allowed here",
+              "style": "solid",
+              "kind": "handoff",
+              "step": 2,
+              "fromSide": "right",
+              "toSide": "left",
+              "labelAt": 0.3
+            },
+            {
+              "id": "a3",
+              "from": "st-a1",
+              "to": "st-a2",
+              "label": "sealed",
+              "style": "solid",
+              "step": 3
+            },
+            {
+              "id": "a4",
+              "from": "st-a2",
+              "to": "st-a3",
+              "label": "pledged",
+              "style": "solid",
+              "step": 4
+            },
+            {
+              "id": "a5",
+              "from": "st-a3",
+              "to": "st-a4",
+              "label": "weighted",
+              "style": "solid",
+              "step": 5
+            },
+            {
+              "id": "a6",
+              "from": "st-a4",
+              "to": "st-a5",
+              "label": "closed",
+              "style": "solid",
+              "kind": "handoff",
+              "step": 6,
+              "fromSide": "right",
+              "toSide": "left",
+              "labelAt": 0.3
+            },
+            {
+              "id": "a7",
+              "from": "st-a5",
+              "to": "st-a6",
+              "label": "revealed",
+              "style": "solid",
+              "step": 7
+            },
+            {
+              "id": "a8",
+              "from": "st-a6",
+              "to": "st-a7",
+              "label": "drawn",
+              "style": "solid",
+              "step": 8
+            },
+            {
+              "id": "a9",
+              "from": "st-a1",
+              "to": "@commit",
+              "label": "before any entry",
+              "style": "solid",
+              "fromSide": "right",
+              "toSide": "bottom",
+              "labelAt": 0.85
+            },
+            {
+              "id": "a10",
+              "from": "st-a7",
+              "to": "@proof",
+              "label": "everything to redo it",
+              "style": "solid",
+              "fromSide": "right",
+              "toSide": "bottom",
+              "labelAt": 0.85
+            },
+            {
+              "id": "a11",
+              "from": "@policy1",
+              "to": "gt-a1",
+              "label": "what a market allows",
+              "style": "solid",
+              "kind": "read",
+              "toSide": "left",
+              "labelAt": 0.4
+            },
+            {
+              "id": "a12",
+              "from": "st-a7",
+              "to": "@metric1",
+              "label": "measured per round",
+              "style": "solid",
+              "fromSide": "right",
+              "toSide": "bottom",
+              "labelAt": 0.85
+            }
+          ],
+          "groups": [
+            {
+              "id": "lane-0",
+              "label": "Before anybody pledges",
+              "x": 500,
+              "y": 0,
+              "w": 360,
+              "h": 1180,
+              "color": "sky"
+            },
+            {
+              "id": "lane-1",
+              "label": "The week it runs",
+              "x": 940,
+              "y": 0,
+              "w": 360,
+              "h": 1180,
+              "color": "amber"
+            },
+            {
+              "id": "lane-2",
+              "label": "The draw",
+              "x": 1380,
+              "y": 0,
+              "w": 360,
+              "h": 1180,
+              "color": "slate"
+            }
+          ]
+        }
+      },
+      {
+        "id": "proc2",
+        "type": "process",
+        "label": "Four thousand people buy one thing",
+        "notes": "Open it: a window opening on a published clock, four thousand commitments landing in the same minute onto an additive counter, a tier the supplier itself published being reached, and the system placing the order at the price the count actually earned.",
+        "x": 480,
+        "y": 300,
+        "h": 287,
+        "facts": {
+          "owner": "the group buy lead",
+          "cases": "about 30,000 buys a year",
+          "cycle": "minutes to a fortnight"
+        },
+        "on": [
+          "buy",
+          "tiers",
+          "counter",
+          "window",
+          "supplier",
+          "po",
+          "app",
+          "escrow",
+          "pledge",
+          "ledger"
+        ],
+        "detail": {
+          "title": "Four thousand people buy one thing",
+          "nodes": [
+            {
+              "id": "ev-b1",
+              "type": "event",
+              "label": "A window opens",
+              "notes": "",
+              "x": 540,
+              "y": 40,
+              "h": 144,
+              "facts": {
+                "source": "the schedule, announced",
+                "rate": "about 30,000 a year",
+                "carries": "item, tiers, clock"
+              },
+              "on": [
+                "window",
+                "buy"
+              ]
+            },
+            {
+              "id": "st-b1",
+              "type": "stage",
+              "label": "Four thousand join at once",
+              "notes": "The most concurrent moment the platform has. Every join adds and none of them waits behind another, which is the shape a flash sale breaks on elsewhere.",
+              "x": 540,
+              "y": 240,
+              "h": 246,
+              "facts": {
+                "actor": "the crowd",
+                "system": "an additive counter",
+                "touch": "the same minute"
+              },
+              "on": [
+                "counter",
+                "buy",
+                "app"
+              ],
+              "by": "person"
+            },
+            {
+              "id": "st-b2",
+              "type": "stage",
+              "label": "Hold each commitment",
+              "notes": "Held rather than taken, because the price is still moving while the count climbs.",
+              "x": 540,
+              "y": 542,
+              "h": 214,
+              "facts": {
+                "actor": "the escrow",
+                "system": "wallets and cards",
+                "touch": "per join"
+              },
+              "on": [
+                "escrow",
+                "pledge",
+                "ledger"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-b3",
+              "type": "stage",
+              "label": "Read the published tier",
+              "notes": "Price by quantity, published by the supplier as a signed commit with its own start and end. What the crowd is quoted is the supplier's own number.",
+              "x": 980,
+              "y": 40,
+              "h": 229,
+              "facts": {
+                "actor": "the buy",
+                "system": "tier_published",
+                "touch": "as the count moves"
+              },
+              "on": [
+                "tiers",
+                "supplier",
+                "counter"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "gt-b1",
+              "type": "gate",
+              "label": "Close on the clock, or on the tier?",
+              "notes": "Both kinds are written before the window opens, because a deadline that can move while people are deciding is not a deadline.",
+              "x": 980,
+              "y": 325,
+              "h": 276,
+              "facts": {
+                "rule": "whichever the window declared",
+                "approver": "the schedule, published",
+                "limit": "a window that is quietly extended is voi"
+              },
+              "on": [
+                "window",
+                "buy"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-b4",
+              "type": "stage",
+              "label": "Place the order",
+              "notes": "At the tier the count actually reached, against the quote the supplier published. Nothing is renegotiated afterwards, because the price was a version.",
+              "x": 980,
+              "y": 657,
+              "h": 229,
+              "facts": {
+                "actor": "the platform",
+                "system": "purchase orders",
+                "touch": "at close"
+              },
+              "on": [
+                "po",
+                "supplier",
+                "tiers"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-b5",
+              "type": "stage",
+              "label": "Take what was held",
+              "notes": "Everybody pays the price the whole crowd earned, which is usually below what they agreed to pay when they joined.",
+              "x": 1420,
+              "y": 40,
+              "h": 214,
+              "facts": {
+                "actor": "the escrow",
+                "system": "holds, at the final tier",
+                "touch": "instant"
+              },
+              "on": [
+                "escrow",
+                "ledger",
+                "pledge"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-b6",
+              "type": "stage",
+              "label": "The supplier reads its own order",
+              "notes": "One document per order that both sides write to, so a short shipment is a field they agree on rather than two systems disagreeing.",
+              "x": 1420,
+              "y": 310,
+              "h": 246,
+              "facts": {
+                "actor": "the supplier",
+                "system": "its shared library",
+                "touch": "on the next sync"
+              },
+              "on": [
+                "supplier",
+                "po"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-b7",
+              "type": "stage",
+              "label": "Refund the difference",
+              "notes": "",
+              "x": 1420,
+              "y": 612,
+              "h": 163,
+              "facts": {
+                "actor": "the escrow",
+                "system": "back the way it came",
+                "touch": "minutes"
+              },
+              "on": [
+                "escrow",
+                "ledger",
+                "pledge"
+              ],
+              "by": "rule"
+            }
+          ],
+          "edges": [
+            {
+              "id": "b1",
+              "from": "ev-b1",
+              "to": "st-b1",
+              "label": "opened",
+              "style": "solid",
+              "step": 1
+            },
+            {
+              "id": "b2",
+              "from": "st-b1",
+              "to": "st-b2",
+              "label": "joined",
+              "style": "solid",
+              "step": 2
+            },
+            {
+              "id": "b3",
+              "from": "st-b1",
+              "to": "st-b3",
+              "label": "the count climbs",
+              "style": "solid",
+              "kind": "handoff",
+              "step": 3,
+              "fromSide": "right",
+              "toSide": "left",
+              "labelAt": 0.3
+            },
+            {
+              "id": "b4",
+              "from": "st-b3",
+              "to": "gt-b1",
+              "label": "a tier is reached",
+              "style": "solid",
+              "step": 4
+            },
+            {
+              "id": "b5",
+              "from": "gt-b1",
+              "to": "st-b4",
+              "label": "closed",
+              "style": "solid",
+              "step": 5
+            },
+            {
+              "id": "b6",
+              "from": "st-b4",
+              "to": "st-b5",
+              "label": "ordered",
+              "style": "solid",
+              "kind": "handoff",
+              "step": 6,
+              "fromSide": "right",
+              "toSide": "left",
+              "labelAt": 0.3
+            },
+            {
+              "id": "b7",
+              "from": "st-b5",
+              "to": "st-b6",
+              "label": "paid",
+              "style": "solid",
+              "step": 7
+            },
+            {
+              "id": "b8",
+              "from": "st-b5",
+              "to": "st-b7",
+              "label": "overpaid",
+              "style": "solid",
+              "step": 7
+            },
+            {
+              "id": "b9",
+              "from": "st-b1",
+              "to": "@counter",
+              "label": "every join adds",
+              "style": "solid",
+              "fromSide": "right",
+              "toSide": "bottom",
+              "labelAt": 0.85
+            },
+            {
+              "id": "b10",
+              "from": "st-b4",
+              "to": "@po",
+              "label": "at the tier reached",
+              "style": "solid",
+              "fromSide": "right",
+              "toSide": "bottom",
+              "labelAt": 0.85
+            },
+            {
+              "id": "b11",
+              "from": "@policy1",
+              "to": "st-b2",
+              "label": "what may be held",
+              "style": "solid",
+              "kind": "read",
+              "toSide": "left",
+              "labelAt": 0.4
+            },
+            {
+              "id": "b12",
+              "from": "st-b5",
+              "to": "@metric1",
+              "label": "measured per buy",
+              "style": "solid",
+              "fromSide": "right",
+              "toSide": "bottom",
+              "labelAt": 0.85
+            }
+          ],
+          "groups": [
+            {
+              "id": "lane-0",
+              "label": "The window opens",
+              "x": 500,
+              "y": 0,
+              "w": 360,
+              "h": 916,
+              "color": "rose"
+            },
+            {
+              "id": "lane-1",
+              "label": "The price the count earns",
+              "x": 940,
+              "y": 0,
+              "w": 360,
+              "h": 916,
+              "color": "amber"
+            },
+            {
+              "id": "lane-2",
+              "label": "Settling",
+              "x": 1380,
+              "y": 0,
+              "w": 360,
+              "h": 916,
+              "color": "slate"
+            }
+          ]
+        }
+      },
+      {
+        "id": "proc3",
+        "type": "process",
+        "label": "Where the crowd decides it goes",
+        "notes": "Open it: anybody in the buy proposing a destination with a reason, the freight and the distribution model priced onto the ballot beside it, a ranked vote weighted by what people put in, and a tally that becomes an address, a way of breaking the pallet up and a named person holding it.",
+        "x": 860,
+        "y": 300,
+        "h": 302,
+        "facts": {
+          "owner": "the fulfilment lead",
+          "cases": "about 30,000 buys a year",
+          "cycle": "a few days"
+        },
+        "on": [
+          "dest",
+          "vote",
+          "split",
+          "logistics",
+          "ship",
+          "po",
+          "app",
+          "people",
+          "disputes",
+          "escrow"
+        ],
+        "detail": {
+          "title": "Where the crowd decides it goes",
+          "nodes": [
+            {
+              "id": "ev-c1",
+              "type": "event",
+              "label": "The order is placed",
+              "notes": "",
+              "x": 540,
+              "y": 40,
+              "h": 144,
+              "facts": {
+                "source": "the group buy",
+                "rate": "about 30,000 a year",
+                "carries": "a pallet, and no address yet"
+              },
+              "on": [
+                "po",
+                "buy"
+              ]
+            },
+            {
+              "id": "st-c1",
+              "type": "stage",
+              "label": "Anybody proposes one",
+              "notes": "A school, a shelter, a repair café, a member's address, a hub to split from. With a reason attached, because the reason is what the vote is actually about.",
+              "x": 540,
+              "y": 240,
+              "h": 259,
+              "facts": {
+                "actor": "a backer in the buy",
+                "system": "destinations proposed",
+                "touch": "while the window runs"
+              },
+              "on": [
+                "dest",
+                "app",
+                "people"
+              ],
+              "by": "person"
+            },
+            {
+              "id": "st-c2",
+              "type": "stage",
+              "label": "Price the freight and the split",
+              "notes": "Each option carries what it costs to reach and what it costs to break up: one drop with a captain, a hub with a collection window, or our depot picking and posting every share for a fee.",
+              "x": 540,
+              "y": 555,
+              "h": 291,
+              "facts": {
+                "actor": "the fulfilment lead",
+                "system": "carrier quotes, and the models",
+                "touch": "per destination"
+              },
+              "on": [
+                "logistics",
+                "dest",
+                "split"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-c3",
+              "type": "stage",
+              "label": "Rank them, weighted",
+              "notes": "Weighted by what each backer put in, closing on a clock published when the vote opened.",
+              "x": 980,
+              "y": 40,
+              "h": 229,
+              "facts": {
+                "actor": "the crowd",
+                "system": "ranked choice",
+                "touch": "on a published clock"
+              },
+              "on": [
+                "vote",
+                "dest",
+                "people"
+              ],
+              "by": "person"
+            },
+            {
+              "id": "gt-c1",
+              "type": "gate",
+              "label": "Did it clear the bar?",
+              "notes": "A default written when the buy opened catches the case where the crowd stops paying attention, so a pallet is never sitting in a warehouse waiting for a thread to conclude.",
+              "x": 980,
+              "y": 325,
+              "h": 274,
+              "facts": {
+                "rule": "a quorum of the buy's backers",
+                "approver": "the vote pipeline",
+                "limit": "short of quorum, the default address"
+              },
+              "on": [
+                "vote",
+                "buy"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-c4",
+              "type": "stage",
+              "label": "The tally becomes an address and a model",
+              "notes": "The result carries the tally, the destination, how the pallet is to be broken up and who takes custody when it lands, so a year later why it went there is read rather than remembered.",
+              "x": 980,
+              "y": 655,
+              "h": 261,
+              "facts": {
+                "actor": "the vote pipeline",
+                "system": "shipments, and the split",
+                "touch": "instant"
+              },
+              "on": [
+                "ship",
+                "vote",
+                "split"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-c5",
+              "type": "stage",
+              "label": "Book the truck",
+              "notes": "",
+              "x": 1420,
+              "y": 40,
+              "h": 148,
+              "facts": {
+                "actor": "the fulfilment lead",
+                "system": "carriers and freight",
+                "touch": "the same day"
+              },
+              "on": [
+                "logistics",
+                "ship"
+              ],
+              "by": "rule"
+            },
+            {
+              "id": "st-c6",
+              "type": "stage",
+              "label": "Custody, share by share",
+              "notes": "Each handover is a signed write with a photograph, so the gap between the carrier's proof of delivery and a backer holding their share is covered. For a crowd that never meets, that is the only ending there is.",
+              "x": 1420,
+              "y": 244,
+              "h": 274,
+              "facts": {
+                "actor": "the captain, the hub or our depot",
+                "system": "the split document",
+                "touch": "as each is handed over"
+              },
+              "on": [
+                "split",
+                "ship",
+                "app"
+              ],
+              "by": "person"
+            },
+            {
+              "id": "st-c7",
+              "type": "stage",
+              "label": "Anything argued is argued on the record",
+              "notes": "The tally, the freight quotes and the signed ledger are all still there, so an appeal is answered from documents.",
+              "x": 1420,
+              "y": 574,
+              "h": 261,
+              "facts": {
+                "actor": "the panel",
+                "system": "disputes, against the proof",
+                "touch": "when raised"
+              },
+              "on": [
+                "disputes",
+                "archive",
+                "vote"
+              ],
+              "by": "person"
+            }
+          ],
+          "edges": [
+            {
+              "id": "c1",
+              "from": "ev-c1",
+              "to": "st-c1",
+              "label": "needs an address",
+              "style": "solid",
+              "step": 1
+            },
+            {
+              "id": "c2",
+              "from": "st-c1",
+              "to": "st-c2",
+              "label": "proposed",
+              "style": "solid",
+              "step": 2
+            },
+            {
+              "id": "c3",
+              "from": "st-c2",
+              "to": "st-c3",
+              "label": "on the ballot",
+              "style": "solid",
+              "kind": "handoff",
+              "step": 3,
+              "fromSide": "right",
+              "toSide": "left",
+              "labelAt": 0.3
+            },
+            {
+              "id": "c4",
+              "from": "st-c3",
+              "to": "gt-c1",
+              "label": "voted",
+              "style": "solid",
+              "step": 4
+            },
+            {
+              "id": "c5",
+              "from": "gt-c1",
+              "to": "st-c4",
+              "label": "carried",
+              "style": "solid",
+              "step": 5
+            },
+            {
+              "id": "c6",
+              "from": "st-c4",
+              "to": "st-c5",
+              "label": "an address",
+              "style": "solid",
+              "kind": "handoff",
+              "step": 6,
+              "fromSide": "right",
+              "toSide": "left",
+              "labelAt": 0.3
+            },
+            {
+              "id": "c7",
+              "from": "st-c5",
+              "to": "st-c6",
+              "label": "on the road",
+              "style": "solid",
+              "step": 7
+            },
+            {
+              "id": "c8",
+              "from": "st-c6",
+              "to": "st-c7",
+              "label": "if anybody objects",
+              "style": "solid",
+              "step": 8
+            },
+            {
+              "id": "c9",
+              "from": "st-c3",
+              "to": "@vote",
+              "label": "ranked and weighted",
+              "style": "solid",
+              "fromSide": "right",
+              "toSide": "bottom",
+              "labelAt": 0.85
+            },
+            {
+              "id": "c10",
+              "from": "st-c4",
+              "to": "@ship",
+              "label": "the address it chose",
+              "style": "solid",
+              "fromSide": "right",
+              "toSide": "bottom",
+              "labelAt": 0.85
+            },
+            {
+              "id": "c11",
+              "from": "@policy1",
+              "to": "st-c1",
+              "label": "who may propose",
+              "style": "solid",
+              "kind": "read",
+              "toSide": "left",
+              "labelAt": 0.4
+            },
+            {
+              "id": "c12",
+              "from": "st-c6",
+              "to": "@metric1",
+              "label": "measured per buy",
+              "style": "solid",
+              "fromSide": "right",
+              "toSide": "bottom",
+              "labelAt": 0.85
+            }
+          ],
+          "groups": [
+            {
+              "id": "lane-0",
+              "label": "What is on the ballot",
+              "x": 500,
+              "y": 0,
+              "w": 360,
+              "h": 946,
+              "color": "sky"
+            },
+            {
+              "id": "lane-1",
+              "label": "Deciding",
+              "x": 940,
+              "y": 0,
+              "w": 360,
+              "h": 946,
+              "color": "violet"
+            },
+            {
+              "id": "lane-2",
+              "label": "Getting it there",
+              "x": 1380,
+              "y": 0,
+              "w": 360,
+              "h": 946,
+              "color": "slate"
+            }
+          ]
+        }
+      },
+      {
+        "id": "metric1",
+        "type": "metric",
+        "label": "Every draw recomputes to the same answer",
+        "notes": "A weighted lottery that only its operator can evaluate asks the crowd for trust. One a stranger can rerun on a laptop from the published proof asks for arithmetic instead, and arithmetic is a much smaller thing to ask of somebody who has just put money in.",
+        "x": 480,
+        "y": 640,
+        "h": 302,
+        "facts": {
+          "formula": "independent recomputations that agree",
+          "target": "100 in 100",
+          "cadence": "every round, by anyone"
+        },
+        "on": [
+          "proof",
+          "verify",
+          "draw",
+          "commit",
+          "disputes"
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "id": "pe0",
+        "from": "policy1",
+        "to": "proc1",
+        "label": "",
+        "style": "solid",
+        "kind": "read"
+      },
+      {
+        "id": "pe1",
+        "from": "policy1",
+        "to": "proc2",
+        "label": "",
+        "style": "solid",
+        "kind": "read"
+      },
+      {
+        "id": "pe2",
+        "from": "policy1",
+        "to": "proc3",
+        "label": "",
+        "style": "solid",
+        "kind": "read"
+      },
+      {
+        "id": "me0",
+        "from": "proc1",
+        "to": "metric1",
+        "label": "measured per round",
+        "style": "solid"
+      },
+      {
+        "id": "me1",
+        "from": "proc2",
+        "to": "metric1",
+        "label": "measured per buy",
+        "style": "solid"
+      },
+      {
+        "id": "me2",
+        "from": "proc3",
+        "to": "metric1",
+        "label": "measured per buy",
+        "style": "solid"
+      }
+    ],
+    "groups": [],
+    "legend": true
+  }
+}
