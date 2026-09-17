@@ -6,11 +6,11 @@
 #   bin/declare-stores.sh            (from the host, via docker compose exec)
 set -eu
 cd "$(dirname "$0")/.."
-docker compose run --rm -T tools node lib/stores.mjs > /tmp/declare-stores.$$ 
+docker compose run --rm --no-deps -T tools node lib/stores.mjs > /tmp/declare-stores.$$
 n=0
 while IFS= read -r line; do
   [ -z "$line" ] && continue
-  out=$(docker compose exec -T -w /data/platform-eu platform sh -c "$line" 2>&1) || true
+  out=$(docker compose exec -T -w /data/platform-eu platform sh -c "$line" 2>&1 < /dev/null) || true
   case "$out" in *"already"*) ;; *) echo "$out";; esac
   n=$((n+1))
 done < /tmp/declare-stores.$$

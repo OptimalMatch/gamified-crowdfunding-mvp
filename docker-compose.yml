@@ -26,6 +26,7 @@ x-app: &app
     SQLD_PASSWORD: "${SQLD_PASSWORD}"
     MINIO_ROOT_USER: "${MINIO_ROOT_USER:-demo}"
     MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+    DEMO_KEY_SEED: "${DEMO_KEY_SEED:-demo-only-change-me}"
 
 services:
   # The region node: the platform's own library plus one shared library per sponsor and per supplier.
