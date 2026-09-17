@@ -1,32 +1,185 @@
-# Draft from the MVP sheet of "Gamified crowdfunding: a draw anybody can recompute, and a crowd that ships". Edit freely; the sheet is the intent.
+# Gamified crowdfunding, the MVP on one machine. One container per design
+# node; a node that joins several libraries runs one engine process per
+# library (DECISIONS.md, 3). Libraries: platform-eu (the region node's own,
+# where the crowd's stores live), sponsor-acme-shared (one sponsor and the
+# platform), supplier-northlight-shared (one supplier and the platform).
+#
+# Ports inside every container: first library 47800/47801 (sync/DHT), API
+# 7480; second 47810/47811, API 7481; third 47820/47821, API 7482. Host
+# ports below start at 17600 (nodes), 15533 (SQL wire), 13200 (Metabase),
+# 19100 (MinIO), 18180 (the backer web app).
+x-node: &node
+  build:
+    context: .
+    args: { UNIDATUM_VERSION: "${UNIDATUM_VERSION}" }
+  image: unidatum:${UNIDATUM_VERSION}
+  networks: [demo]
+  restart: unless-stopped
+
+x-app: &app
+  image: node:22-alpine
+  working_dir: /app
+  volumes: ["./lib:/app/lib:ro", "./seed:/app/seed:ro", "./sims:/app/sims:ro", "./checks:/app/checks:ro", "./bin:/app/bin:ro", "./web:/app/web:ro", "./pipelines:/app/pipelines:ro"]
+  networks: [demo]
+  environment:
+    SQLD_USER: "${SQLD_USER:-demo}"
+    SQLD_PASSWORD: "${SQLD_PASSWORD}"
+    MINIO_ROOT_USER: "${MINIO_ROOT_USER:-demo}"
+    MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+
 services:
-  metabase:
-    image: metabase/metabase
-    ports: ["3000:3000"]
-    networks: [demo]
+  # The region node: the platform's own library plus one shared library per sponsor and per supplier.
+  platform:
+    <<: *node
+    environment:
+      NODE_NAME: platform
+      LIBRARIES: "platform-eu:47800:47801:7480;sponsor-acme-shared:47810:47811:7481;supplier-northlight-shared:47820:47821:7482"
+      PIPELINES: "platform-eu"
+      SQLD: "platform-eu:5433"
+      SQLD_USER: "${SQLD_USER:-demo}"
+      SQLD_PASSWORD: "${SQLD_PASSWORD}"
+    volumes: ["platform-data:/data"]
+    ports: ["17600:7480", "17601:7481", "17602:7482", "15533:5433"]
+
+  # A library per sponsor: the sponsor's own node on the library it shares with the platform alone.
+  sponsor-acme:
+    <<: *node
+    environment:
+      NODE_NAME: sponsor-acme
+      LIBRARIES: "sponsor-acme-shared:47800:47801:7480"
+      BOOTSTRAP: "sponsor-acme-shared=platform:47811"
+      PEERS: "sponsor-acme-shared=platform:47810"
+    volumes: ["sponsor-acme-data:/data"]
+    ports: ["17610:7480"]
+    depends_on: [platform]
+
+  # A library per supplier: the supplier's own node on the library it shares with the platform alone.
+  supplier-northlight:
+    <<: *node
+    environment:
+      NODE_NAME: supplier-northlight
+      LIBRARIES: "supplier-northlight-shared:47800:47801:7480"
+      BOOTSTRAP: "supplier-northlight-shared=platform:47821"
+      PEERS: "supplier-northlight-shared=platform:47820"
+    volumes: ["supplier-northlight-data:/data"]
+    ports: ["17620:7480"]
+    depends_on: [platform]
+
+  # Anyone, including a regulator: a second node of the platform's library that
+  # only reads, so "Verify it yourself" recomputes from its own copy of the proof.
+  regulator:
+    <<: *node
+    environment:
+      NODE_NAME: regulator
+      LIBRARIES: "platform-eu:47800:47801:7480"
+      BOOTSTRAP: "platform-eu=platform:47801"
+      PEERS: "platform-eu=platform:47800"
+    volumes: ["regulator-data:/data"]
+    ports: ["17630:7480"]
+    depends_on: [platform]
+
+  # Closed rounds and proofs: the bucket round-history.
   closed-rounds-and-proofs:
-    image: minio/minio
+    image: quay.io/minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-demo}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+    volumes: ["round-history:/data"]
+    ports: ["19100:9000", "19101:9001"]
     networks: [demo]
-  backer-app-and-web-sim:
-    build: ./sims/backer-app-and-web
-    depends_on: [node]
+    restart: unless-stopped
+
+  # The dashboards: Metabase over the PostgreSQL wire of the platform's node.
+  metabase:
+    image: metabase/metabase:latest
+    ports: ["13200:3000"]
+    environment: { MB_ANON_TRACKING_ENABLED: "false" }
+    volumes: ["metabase-data:/metabase.db"]
     networks: [demo]
-  verify-it-yourself-sim:
-    build: ./sims/verify-it-yourself
-    depends_on: [node]
-    networks: [demo]
+    restart: unless-stopped
+
+  # The backer app and web: the browser app, served by a small Node server
+  # that also proxies the build sheet's calls to the platform's node.
+  backer-web:
+    <<: *app
+    command: node web/server.mjs
+    ports: ["18180:8080"]
+    restart: unless-stopped
+    depends_on: [platform]
+
+  # The node's own jobs as watchers (the sheet's "watch the node do it"): the round
+  # pipeline (seal, weight, close, beacon, draw, proof), the buy pipeline (tiers,
+  # close, order, refunds) and the vote pipeline (freight, tally, shipment).
+  round-pipeline:
+    <<: *app
+    command: node sims/round-pipeline.mjs
+    restart: unless-stopped
+    depends_on: [platform]
+  group-buy-pipeline:
+    <<: *app
+    command: node sims/group-buy-pipeline.mjs
+    restart: unless-stopped
+    depends_on: [platform]
+  vote-pipeline:
+    <<: *app
+    command: node sims/vote-pipeline.mjs
+    restart: unless-stopped
+    depends_on: [platform]
+
+  # The applications of the build sheet as simulators, each making its calls in flow order.
   escrow-and-payouts-sim:
-    build: ./sims/escrow-and-payouts
-    depends_on: [node]
-    networks: [demo]
+    <<: *app
+    command: node sims/escrow-and-payouts.mjs
+    restart: unless-stopped
+    depends_on: [platform]
+  verify-it-yourself-sim:
+    <<: *app
+    command: node sims/verify-it-yourself.mjs --follow
+    restart: unless-stopped
+    depends_on: [regulator]
+  supplier-sim:
+    <<: *app
+    command: node sims/supplier.mjs
+    restart: unless-stopped
+    depends_on: [supplier-northlight]
+  sponsor-sim:
+    <<: *app
+    command: node sims/sponsor.mjs
+    restart: unless-stopped
+    depends_on: [sponsor-acme]
+  # On demand: docker compose run --rm backer-app-and-web-sim pledges-arrive
+  backer-app-and-web-sim:
+    <<: *app
+    profiles: [ondemand]
+    entrypoint: ["node", "sims/backer-app-and-web.mjs"]
+    depends_on: [platform]
+  # On demand: docker compose run --rm round-agent-over-mcp-sim
   round-agent-over-mcp-sim:
-    build: ./sims/round-agent-over-mcp
-    depends_on: [node]
-    networks: [demo]
+    <<: *app
+    profiles: [ondemand]
+    entrypoint: ["node", "sims/round-agent-over-mcp.mjs"]
+    environment:
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+      ROUND_AGENT_MODEL: "${ROUND_AGENT_MODEL:-claude-sonnet-5}"
+    depends_on: [platform]
+  # The seed and the tools: docker compose run --rm seed; docker compose run --rm tools node checks/run.mjs
   seed:
-    build: ./seed
-    depends_on: [node]
-    networks: [demo]
+    <<: *app
+    profiles: [ondemand]
+    entrypoint: ["node", "seed/seed.mjs"]
+    depends_on: [platform, sponsor-acme, supplier-northlight]
+  tools:
+    <<: *app
+    profiles: [ondemand]
+    depends_on: [platform]
+
 volumes:
+  platform-data:
+  sponsor-acme-data:
+  supplier-northlight-data:
+  regulator-data:
+  round-history:
+  metabase-data:
 networks:
   demo: {}
