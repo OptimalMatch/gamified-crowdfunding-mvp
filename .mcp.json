@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "platform-eu": {
+      "command": "docker",
+      "args": ["compose", "exec", "-i", "platform", "unidatum", "mcp", "--dir", "/data/platform-eu"]
+    }
+  }
+}

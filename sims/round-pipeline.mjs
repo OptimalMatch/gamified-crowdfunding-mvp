@@ -61,7 +61,7 @@ async function weightAndAnchor(pool, closing = false) {
   }
   const roots = await eu.find(STORES.sealed, { round_id: pool._id, kind: closing ? "close" : "root" }, 0);
   const last = roots.sort((a, b) => (a.sealed_at < b.sealed_at ? 1 : -1))[0];
-  if (closing || !last || last.root !== tree.root) {
+  if ((closing && !last) || (!closing && (!last || last.root !== tree.root))) {
     const n = roots.length + 1;
     const doc = { _id: `${pool._id}:${closing ? "close" : "root"}:${String(n).padStart(4, "0")}`, round_id: pool._id, kind: closing ? "close" : "root", root: tree.root, entries: pledges.length, entries_hash: closing ? entriesHash(leaves) : null, rule_id: pool.rule_id, rule_version: pool.rule_version, sealed_at: now(), signed_by: "round" };
     doc.signature = sign(roundKey.privateKey, docMessage(doc));

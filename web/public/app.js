@@ -90,7 +90,7 @@ const views = {
 
   async buy(id) {
     const me = state.me; const d = await api(`/app/buy/${id}${me ? `?backer=${me}` : ""}`); const b = d.buy; const c = d.counter;
-    const reached = b.ladder?.find((t) => t.at_backers === (c?.tier_reached ?? b.tier_reached));
+    const reached = [...(b.ladder || [])].reverse().find((t) => (c?.count ?? b.count ?? 0) >= t.at_backers) || null;
     const ladder = b.ladder?.length ? `<div class="scroll"><table><tr><th class="num">At this many backers</th><th class="num">Units</th><th class="num">Each</th><th>Valid until</th></tr>${b.ladder.map((t) => `<tr class="${t.at_backers === reached?.at_backers ? "reached" : ""}"><td class="num">${t.at_backers}</td><td class="num">${t.units}</td><td class="num">${money(t.price_cents)}</td><td class="small muted">${when(t.valid_until)}</td></tr>`).join("")}</table></div><p class="small muted">Signed by the supplier's own node (key ${short(d.supplierKey, 12)}); the units can outrun the backers, and the surplus goes where the crowd votes.</p>` : `<p class="muted">The ladder is read from the supplier's library when the window opens.</p>`;
     const join = b.status === "open" ? (d.mine ? `<p class="ok">You are in: ${d.mine.units} unit${d.mine.units > 1 ? "s" : ""} at up to ${money(d.mine.put_cents)} each, ${esc(d.mine.status)}. You pay the price the whole crowd earns.</p>` : `<form class="inline" id="join"><select name="units">${[1, 2, 3].map((u) => `<option value="${u}">${u} unit${u > 1 ? "s" : ""}</option>`).join("")}</select><button ${me ? "" : "disabled"}>Join at up to ${money(b.max_price_cents)}</button><span class="small muted">held, not taken, while the count climbs</span></form><div id="join-out"></div>`) : "";
     const dests = d.destinations || [];
