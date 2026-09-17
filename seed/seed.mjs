@@ -17,7 +17,7 @@
 // draw and its proof recompute (checks/run.mjs, 27), so the web app's
 // "recompute it yourself" works on the history as well as on the live rounds.
 import { fleet, ready, now, STORES } from "../lib/api.mjs";
-import { sha256, commitment, merkleTree, merklePath, leafHash, sign, pledgeMessage, mandateMessage, ledgerMessage, hashDoc, canonical } from "../lib/crypto.mjs";
+import { sha256, commitment, merkleTree, merklePath, leafHash, sign, pledgeMessage, mandateMessage, ledgerMessage, hashDoc, canonical, entriesHash, docMessage, commitmentMessage, voteMessage } from "../lib/crypto.mjs";
 import { deviceKey, roleKey, keyDocs } from "../lib/keys.mjs";
 import { allocate, weightFor, scenarioGrid, FAMILIES } from "../lib/mechanisms.mjs";
 import { MARKETS, MARKET_KIND, HOME_MARKETS } from "../lib/markets.mjs";
@@ -108,8 +108,8 @@ async function main() {
     const k = recent ? 5 : int(3, 40); const entries = [];
     for (let e = 0; e < k; e++) {
       const b = backers[int(0, N - 1)]; const pledge_id = `p-${round_id}-${pad(e + 1, 3)}`;
-      const p = { _id: pledge_id, pledge_id, round_id, backer_id: b.backer_id, amount_cents: pick([500, 1000, 1000, 2000, 5000, 10000]), idea: rule.family === "threshold" || rule.family === "weighted_random_draw" || rule.family === "dutch_auction" ? null : pick(IDEAS), ranks: rule.family === "ranked_choice" ? [...IDEAS].sort(() => rnd() - 0.5).slice(0, 3) : null, bid_cents: rule.family === "dutch_auction" ? int(600, 3000) : null, mandate_id: rnd() < 0.3 ? standing[int(0, N - 1)].mandate_id : null, weight: b.weight, multiplier: { streak_weeks: b.streak_weeks, tier: b.tier }, device_public_key: b.device_public_key, pledged_at: iso(opens + rnd() * 7 * DAY) };
-      p.signature = sign(deviceKey(b.backer_id).privateKey, pledgeMessage(p)); entries.push(p);
+      const p = { _id: pledge_id, pledge_id, round_id, backer_id: b.backer_id, amount_cents: pick([500, 1000, 1000, 2000, 5000, 10000]), idea: rule.family === "threshold" || rule.family === "weighted_random_draw" || rule.family === "dutch_auction" ? null : pick(IDEAS), ranks: rule.family === "ranked_choice" ? [...IDEAS].sort(() => rnd() - 0.5).slice(0, 3) : null, bid_cents: rule.family === "dutch_auction" ? int(600, 3000) : null, mandate_id: rnd() < 0.3 ? standing[int(0, N - 1)].mandate_id : null, weight: b.weight, multiplier: { streak_weeks: b.streak_weeks, tier: b.tier }, device_public_key: b.device_public_key, signed_by: "the backer's device", pledged_at: iso(opens + rnd() * 7 * DAY) };
+      p.signature = sign(deviceKey(b.backer_id).privateKey, pledgeMessage(p)); p.held_at = p.pledged_at; p.held_ref = "history"; p.weighted_at = p.pledged_at; entries.push(p);
     }
     entries.sort((a, b) => (a.pledged_at < b.pledged_at ? -1 : 1));
     const leaves = entries.map(leafHash); const tree = merkleTree(leaves);
@@ -118,11 +118,11 @@ async function main() {
     const beacon = beaconFor(round_id, closes);
     const result = allocate(rule, entries, seed, beacon.value);
     const grid = rule.family === "weighted_random_draw" ? scenarioGrid(rule, [10000, 50000, 150000, 400000]) : null;
-    const seal = { _id: `${round_id}:seal`, round_id, kind: "seal", seed_hash: seedHash, rule_id: rule.rule_id, rule_version: rule.version, sealed_at: iso(opens - HOUR), entries: 0, root: null, seed: null, signed_by: "round" }; seal.signature = sign(roundKey.privateKey, canonical({ ...seal, signature: undefined }));
+    const seal = { _id: `${round_id}:seal`, round_id, kind: "seal", seed_hash: seedHash, rule_id: rule.rule_id, rule_version: rule.version, sealed_at: iso(opens - HOUR), entries: 0, root: null, seed: null, signed_by: "round" }; seal.signature = sign(roundKey.privateKey, docMessage(seal));
     sealed.push(seal);
-    const draw = { _id: `d-${round_id}`, draw_id: `d-${round_id}`, round_id, seed, seed_hash: seedHash, beacon, entry_root: tree.root, entry_count: entries.length, entries_hash: sha256(leaves.join("|")), rule_id: rule.rule_id, rule_version: rule.version, result, drawn_at: iso(closes + 45000), signed_by: "round" }; draw.signature = sign(roundKey.privateKey, canonical({ ...draw, signature: undefined }));
+    const draw = { _id: `d-${round_id}`, draw_id: `d-${round_id}`, round_id, seed, seed_hash: seedHash, beacon, entry_root: tree.root, entry_count: entries.length, entries_hash: entriesHash(leaves), rule_id: rule.rule_id, rule_version: rule.version, result, drawn_at: iso(closes + 45000), signed_by: "round" }; draw.signature = sign(roundKey.privateKey, docMessage(draw));
     draws.push(draw);
-    pools.push({ _id: round_id, round_id, title: `${pick(IDEAS)} in ${market}`, category: pick(CATEGORIES), market, rule_id: rule.rule_id, rule_version: rule.version, mechanism: rule.family, status: "paid", opens_at: iso(opens), closes_at: iso(closes), threshold_cents: rule.params.threshold_cents || null, gathered_cents: gathered, matched_cents: 0, entries: entries.length, band: rule.family === "weighted_random_draw" ? result.band : null, scenario_grid: grid, ideas: rule.family === "threshold" || rule.family === "weighted_random_draw" || rule.family === "dutch_auction" ? [] : IDEAS.slice(0, 4), seal_id: seal._id, draw_id: draw._id, cold: !recent, opened_by: "the operator", updated_at: iso(closes + 60000) });
+    pools.push({ _id: round_id, round_id, title: `${pick(IDEAS)} in ${market}`, category: pick(CATEGORIES), market, rule_id: rule.rule_id, rule_version: rule.version, mechanism: rule.family, status: "paid", opens_at: iso(opens), closes_at: iso(closes), threshold_cents: rule.params.threshold_cents || null, gathered_cents: gathered, matched_cents: 0, entries: entries.length, entry_count: entries.length, band: rule.family === "weighted_random_draw" ? result.band : null, scenario_grid: grid, ideas: rule.family === "threshold" || rule.family === "weighted_random_draw" || rule.family === "dutch_auction" ? [] : IDEAS.slice(0, 4), seal_id: seal._id, draw_id: draw._id, cold: !recent, opened_by: "the operator", updated_at: iso(closes + 60000) });
     if (recent) { pledges.push(...entries); }
   }
   counts[STORES.pools] = await putAll(F.platform.eu, STORES.pools, pools);
@@ -150,7 +150,7 @@ async function main() {
     for (let v = 1; v <= 10; v++) for (let step = 1; step <= 10; step++) {
       const at = [1, 10, 25, 50, 100, 200, 400, 800, 1600, 3200][step - 1]; const units = step >= 7 ? Math.round(at * 1.5) : at;
       const row = { _id: `northlight:${it}:${v}:${step}`, supplier_id: "supplier-northlight", item, item_index: it, version: v, step, at_backers: at, units, price_cents: Math.round(base * (1 - 0.04 * (step - 1)) * (1 - 0.005 * (10 - v))), valid_from: iso(T0 - (10 - v) * 30 * DAY), valid_until: iso(T0 + (v === 10 ? 60 : v - 10 + 1) * 30 * DAY), set_by: "the negotiation, then the supplier" };
-      row.signature = sign(supplierKey.privateKey, hashDoc({ ...row, signature: undefined })); tiers.push(row);
+      row.signature = sign(supplierKey.privateKey, docMessage(row)); tiers.push(row);
     }
   }
   counts[STORES.tiers] = await putAll(F.supplier, STORES.tiers, tiers.slice(0, TIER_ROWS));
@@ -166,17 +166,17 @@ async function main() {
     buys.push({ _id: buy_id, buy_id, item, item_index: it, supplier_id: "supplier-northlight", tier_version: 10, ladder: lad.map((t) => ({ at_backers: t.at_backers, units: t.units, price_cents: t.price_cents })), window_opens_at: iso(opens), window_closes_at: iso(closes), close_on: closeOn, close_tier: closeOn === "tier" ? lad[int(2, 5)].at_backers : null, status: "delivered", count: joined, tier_reached: reached.at_backers, units: reached.units, unit_price_cents: reached.price_cents, max_price_cents: lad[0].price_cents, default_destination: { kind: dest[0], name: dest[1] }, quorum: 0.2, vote_closes_at: iso(closes + 2 * DAY), funded_by_round: rnd() < 0.5 ? `r-${pad(int(1, N))}` : null, updated_at: iso(closes + 5 * DAY) });
     const b = backers[int(0, N - 1)];
     const c = { _id: `c-${buy_id}-${pad(1, 3)}`, commitment_id: `c-${buy_id}-001`, buy_id, backer_id: b.backer_id, units: 1, put_cents: lad[0].price_cents, taken_cents: reached.price_cents, refunded_cents: lad[0].price_cents - reached.price_cents, status: "refunded", device_public_key: b.device_public_key, joined_at: iso(opens + rnd() * 60000) };
-    c.signature = sign(deviceKey(b.backer_id).privateKey, canonical({ commitment_id: c.commitment_id, buy_id, backer_id: c.backer_id, units: 1, put_cents: c.put_cents, joined_at: c.joined_at })); commitments.push(c);
+    c.signature = sign(deviceKey(b.backer_id).privateKey, commitmentMessage(c)); commitments.push(c);
     countsDocs.push({ _id: buy_id, buy_id, item, count: joined, units: joined, held_cents: joined * lad[0].price_cents, tier_reached: reached.at_backers, updated_at: iso(closes) });
     const order = { _id: `po-${buy_id}`, order_id: `po-${buy_id}`, buy_id, supplier_id: "supplier-northlight", item, tier_reached: reached.at_backers, units: reached.units, unit_price_cents: reached.price_cents, total_cents: reached.units * reached.price_cents, quote_version: 10, quote_signature: reached.signature, placed_at: iso(closes + 1000), status: "shipped", supplier_ack_at: iso(closes + HOUR), shipped_units: rnd() < 0.05 ? reached.units - int(1, 3) : reached.units, paid_at: iso(closes + 2 * HOUR) };
     orders.push(order);
     const d = { _id: `dest-${buy_id}-1`, destination_id: `dest-${buy_id}-1`, buy_id, proposed_by: b.backer_id, kind: dest[0], name: dest[1], address: `${int(1, 200)} ${pick(["Manor St", "Main St", "Quay St", "Church Rd", "Mill Lane"])}, ${pick(["Dublin 7", "Cork", "Galway", "Limerick", "Sligo"])}`, reason: pick(["they asked for it", "the nearest school", "it splits well from here", "a member will hand it out", "the shelter needs them this winter"]), freight_cents: int(2000, 25000), split_model: model[0], split_fee_per_share_cents: model[1], proposed_at: iso(closes + HOUR) };
     destinations.push(d);
-    const v = { _id: `vote:${buy_id}:${b.backer_id}`, buy_id, backer_id: b.backer_id, ranks: [d.destination_id], weight_cents: c.put_cents, cast_at: iso(closes + 2 * HOUR) }; v.signature = sign(deviceKey(b.backer_id).privateKey, canonical({ buy_id, backer_id: b.backer_id, ranks: v.ranks, cast_at: v.cast_at })); votes.push(v);
+    const v = { _id: `vote:${buy_id}:${b.backer_id}`, buy_id, backer_id: b.backer_id, ranks: [d.destination_id], weight_cents: c.put_cents, cast_at: iso(closes + 2 * HOUR) }; v.signature = sign(deviceKey(b.backer_id).privateKey, voteMessage(v)); votes.push(v);
     tallies.push({ _id: `tally:${buy_id}`, buy_id, voters: 1, weight_cents: c.put_cents, quorum_met: true, rounds: [{ [d.destination_id]: c.put_cents }], winner: d.destination_id, address: d.address, destination: { kind: d.kind, name: d.name }, split_model: model[0], custodian: model[0] === "captain" ? b.backer_id : model[0] === "depot" ? "our depot" : d.name, closed_at: iso(closes + 2 * DAY), signed_by: "fulfilment" });
     const sh = { _id: `sh-${buy_id}`, shipment_id: `sh-${buy_id}`, order_id: order.order_id, buy_id, destination_id: d.destination_id, address: d.address, carrier: pick(CARRIERS), booked_at: iso(closes + 2 * DAY + HOUR), left_dock_at: iso(closes + 3 * DAY), delivered_at: iso(closes + 5 * DAY), pod_photo_hash: sha256(`pod|${buy_id}`), custodian: tallies[tallies.length - 1].custodian, handovers: [{ share: 1, from: "carrier", to: tallies[tallies.length - 1].custodian, photo_hash: sha256(`photo|${buy_id}|1`), at: iso(closes + 5 * DAY), signature: sign(fulfilmentKey.privateKey, `handover|${buy_id}|1`) }], status: "delivered" };
     shipments.push(sh);
-    splits.push({ _id: `split:${buy_id}`, split_id: `split:${buy_id}`, buy_id, model: model[0], fee_per_share_cents: model[1], custodian: sh.custodian, shares_total: reached.units, shares_handed: reached.units, chosen_at: tallies[tallies.length - 1].closed_at });
+    splits.push({ _id: `split:${buy_id}`, split_id: `split:${buy_id}`, buy_id, model: model[0], fee_per_share_cents: model[1], custodian: sh.custodian, shares_total: reached.units, shares_handed: reached.units, chosen_at: tallies[tallies.length - 1].closed_at, fee_charged: model[1] * reached.units, fee_charged_at: model[1] ? iso(closes + 2 * DAY) : null });
   }
   counts[STORES.buys] = await putAll(F.platform.eu, STORES.buys, buys);
   counts[STORES.commitments] = await putAll(F.platform.eu, STORES.commitments, commitments);
