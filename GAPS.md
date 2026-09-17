@@ -29,8 +29,12 @@ and what this build did about it. The kit's prompt asked for this file.
    one `$inc` (`lib/coalesce.mjs`), which is a queue the design says a
    join should never stand in; the counter stays additive across nodes
    and the receipts (one signed commitment document per join, written
-   without contention at about 900 a second) are the count of record.
-   The tier reached is written on the buy, never on the counter document.
+   without contention) are the count of record. Two more things keep it
+   exact: the tier reached is written on the buy, never on the counter
+   document, so nothing read-modify-writes the document a delta is landing
+   on; and the counter collection is never compacted while a window is
+   open, because a fold that runs while deltas land drops some of them
+   (3,783 of 3,804 with folds every pass; 2,000 of 2,000 without).
 5. **A reader must hold every member.** A collection is read only when
    every member is local; a member another node just wrote may not be
    here yet ("needs every member local", or "read_parquet needs at least
@@ -60,14 +64,22 @@ and what this build did about it. The kit's prompt asked for this file.
    keys are in the `keys` collection.
 10. **No sort in the document API.** `find` takes a filter and a limit;
     the client sorts.
-11. **Joins land at tens a second, not thousands.** A node takes about
-    900 puts a second on an idle collection, but with the watchers, the
-    escrow's holds and a reader over the same collection, four thousand
-    joins take about two minutes on this machine. The counter does not
-    wait behind anything; the node does.
+11. **Joins land at about 150 a second.** A node takes about 900 puts a
+    second on an idle collection; with the watchers, the escrow's holds
+    and a reader over the same collection, four thousand joins take about
+    25 s on this machine (two minutes before the stores were declared
+    ahead of the seed, when the seeded members were unfolded deltas). The
+    counter does not wait behind anything; the node does.
 12. **Reads under a large find are occasionally short.** Once in a run a
     find over a thousand-document collection on the regulator returned
     999 documents; the checks replicate first and look a missing document
     up by id before calling it missing.
-13. **Simulators in Node.js.** The build sheet's facts say Kotlin, Swift,
+13. **A counter declared after the value was written zeroes it.** `unidatum
+    doc counter` on a collection whose documents already carry the field
+    leaves those documents reading 0 (the value is neither kept as a
+    delta nor as a base); a put after the declaration lands as a delta
+    and reads right. The demo therefore seeds one document per store,
+    declares (`bin/declare-stores.sh`), then seeds in full
+    (`SEED_SCHEMA_ONLY` in `seed/seed.mjs`).
+14. **Simulators in Node.js.** The build sheet's facts say Kotlin, Swift,
     TypeScript and Go for the applications (`DECISIONS.md`, 6).

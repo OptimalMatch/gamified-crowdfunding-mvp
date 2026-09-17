@@ -43,7 +43,12 @@ const CARRIERS = ["DPD", "An Post", "Fastway", "Pallex"];
 const roundKey = roleKey("round"), escrowKey = roleKey("escrow"), supplierKey = roleKey("supplier-northlight"), fulfilmentKey = roleKey("fulfilment"), panelKey = roleKey("panel");
 const beaconFor = (roundId, closesAt) => ({ source: "seeded-history", round: Math.floor(closesAt / 30000), value: sha256(`beacon|${roundId}|${closesAt}`), at: iso(closesAt + 30000) });
 
-async function putAll(node, store, docs) { for (let i = 0; i < docs.length; i += 500) await node.put(store, docs.slice(i, i + 500)); console.log(`${store}: ${docs.length} on ${node.name}`); return docs.length; }
+// SEED_SCHEMA_ONLY=1 writes one document per store and stops: a collection must
+// exist before its counters and merge policy are declared, and a counter
+// declared after a value was written zeroes that value (GAPS.md, 14). So the
+// demo seeds one document per store, declares, then seeds everything.
+const SCHEMA_ONLY = process.env.SEED_SCHEMA_ONLY === "1";
+async function putAll(node, store, docs) { const take = SCHEMA_ONLY ? docs.slice(0, 1) : docs; for (let i = 0; i < take.length; i += 500) await node.put(store, take.slice(i, i + 500)); console.log(`${store}: ${take.length}${SCHEMA_ONLY ? " (schema only)" : ""} on ${node.name}`); return docs.length; }
 
 async function main() {
   await ready(F.platform.eu); await ready(F.platform.sponsor); await ready(F.platform.supplier); await ready(F.supplier); await ready(F.sponsor);
@@ -207,6 +212,7 @@ async function main() {
   await putAll(F.sponsor, STORES.sponsorView, [{ _id: "acme", sponsor_id: "sponsor-acme", may_see: ["totals per round", "categories", "outcomes", "its own match and its release"], may_not_see: ["backer identities", "individual pledges", "entry weights"], set_by: "legal, and the sponsor" }]);
 
   // 12. The manifest: what was seeded, per store, so the checks know the baseline.
+  if (SCHEMA_ONLY) { console.log("one document per store written; declare the stores, then seed in full"); return; }
   await F.platform.eu.put("seed_manifest", { _id: "seed", seeded_at: now(), counts, tiers_on_supplier: Math.min(tiers.length, TIER_ROWS), supplier_orders_shared: 200, recent_rounds: recentRounds.map((r) => r.round_id).slice(0, 5), secret_hint: "device keys derive from DEMO_KEY_SEED" });
   console.log(`seeded in ${((Date.now() - T0) / 1000).toFixed(0)} s:`, counts);
 }

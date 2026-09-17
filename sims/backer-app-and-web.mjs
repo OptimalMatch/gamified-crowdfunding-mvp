@@ -133,8 +133,10 @@ async function proposeAndVote() {
   log(`${k} ballots cast in ${Date.now() - t0} ms, ranked and weighted by what each put in; the vote closes ${buy.vote_closes_at}`);
 }
 async function custody() {
-  let buys = await eu.find(STORES.buys, { status: { $in: ["shipped", "delivered"] } }, 0); if (positional) buys = buys.filter((b) => b._id === positional);
-  for (let i = 0; i < 40 && !buys.filter((b) => b.status === "delivered").length; i++) { await sleep(2000); buys = await eu.find(STORES.buys, { status: { $in: ["shipped", "delivered"] } }, 0); if (positional) buys = buys.filter((b) => b._id === positional); }
+  // The live buy (the history's buys are delivered too): by id, or the newest one opened live.
+  const liveBuys = async () => (await eu.find(STORES.buys, { status: { $in: ["shipped", "delivered"] }, _id: positional ? positional : { $regex: "-(live|web)-" } }, 0)).sort((a, b) => (a.window_opens_at < b.window_opens_at ? 1 : -1));
+  let buys = await liveBuys();
+  for (let i = 0; i < 40 && !buys.filter((b) => b.status === "delivered").length; i++) { await sleep(2000); buys = await liveBuys(); }
   const buy = buys.find((b) => b.status === "delivered") || buys[0]; if (!buy) throw new Error("nothing delivered yet");
   const sh = await eu.get1(STORES.shipments, `sh-${buy._id}`); const split = await eu.get1(STORES.splits, `split:${buy._id}`);
   const members = await eu.find(STORES.commitments, { buy_id: buy._id }, 0);
@@ -154,8 +156,8 @@ async function dispute() {
   const backers = await eu.find(STORES.backers, {}, 50); const b = pick(backers);
   const id = `dsp-live-${Date.now().toString(36)}`;
   let doc;
-  if (claim === "draw") { const pool = positional ? await eu.get1(STORES.pools, positional) : (await eu.find(STORES.pools, { status: "paid", cold: false }, 0)).pop(); const ledger = await eu.find(STORES.ledger, { round_id: pool._id }, 0); doc = { _id: id, dispute_id: id, kind: "draw", round_id: pool._id, buy_id: null, backer_id: b.backer_id, claim: "the draw was wrong", argued_against: { proof: pool.draw_id, seal: pool.seal_id, ledger: ledger.map((l) => l.entry_id) }, status: "open", answer: null, raised_at: now(), answered_at: null, panel: "the panel" }; }
-  else { const buy = positional ? await eu.get1(STORES.buys, positional) : (await eu.find(STORES.buys, { status: "delivered" }, 0)).pop(); doc = { _id: id, dispute_id: id, kind: claim, round_id: null, buy_id: buy._id, backer_id: b.backer_id, claim: claim === "short" ? "the goods were short" : "the destination vote was gamed", argued_against: { order: `po-${buy._id}`, tally: `tally:${buy._id}`, shipment: `sh-${buy._id}` }, status: "open", answer: null, raised_at: now(), answered_at: null, panel: "the panel" }; }
+  if (claim === "draw") { const pool = positional ? await eu.get1(STORES.pools, positional) : ((await eu.find(STORES.pools, { status: "paid", _id: { $regex: "-(live|web)-" } }, 0)).pop() || (await eu.find(STORES.pools, { status: "paid", cold: false }, 0)).pop()); const ledger = await eu.find(STORES.ledger, { round_id: pool._id }, 0); doc = { _id: id, dispute_id: id, kind: "draw", round_id: pool._id, buy_id: null, backer_id: b.backer_id, claim: "the draw was wrong", argued_against: { proof: pool.draw_id, seal: pool.seal_id, ledger: ledger.map((l) => l.entry_id) }, status: "open", answer: null, raised_at: now(), answered_at: null, panel: "the panel" }; }
+  else { const buy = positional ? await eu.get1(STORES.buys, positional) : ((await eu.find(STORES.buys, { status: "delivered", _id: { $regex: "-(live|web)-" } }, 0)).pop() || (await eu.find(STORES.buys, { status: "delivered" }, 0)).pop()); doc = { _id: id, dispute_id: id, kind: claim, round_id: null, buy_id: buy._id, backer_id: b.backer_id, claim: claim === "short" ? "the goods were short" : "the destination vote was gamed", argued_against: { order: `po-${buy._id}`, tally: `tally:${buy._id}`, shipment: `sh-${buy._id}` }, status: "open", answer: null, raised_at: now(), answered_at: null, panel: "the panel" }; }
   await eu.put(STORES.disputes, doc);
   log(`${id}: ${b.backer_id} says "${doc.claim}", argued against ${Object.entries(doc.argued_against).map(([k, v]) => `${k} ${Array.isArray(v) ? v.length + " entries" : v}`).join(", ")}; the panel answers from those documents`);
   console.log(id);

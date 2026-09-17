@@ -10,8 +10,9 @@ from the OptimalMatch/peer-to-peer-db releases (`bin/fetch-engine.sh`).
 cp .env.example .env                      # pin the release; the demo secrets
 bin/fetch-engine.sh                       # the engine archive, never in git
 docker compose up -d --build platform sponsor-acme supplier-northlight regulator closed-rounds-and-proofs metabase
+docker compose run --rm -e SEED_SCHEMA_ONLY=1 seed   # one document per store, so the stores exist
+bin/declare-stores.sh                     # counters, per-field merges and indexes, on the platform's node, before any value lands
 docker compose run --rm seed              # 20 stores, 1,000 documents each, 10,000 tier rows, every history round a real one
-bin/declare-stores.sh                     # counters, per-field merges and indexes, on the platform's node
 docker compose up -d                      # the watchers, the escrow, the supplier's and the sponsor's sims, the verifier, the web app
 docker compose run --rm tools node bin/metabase.mjs   # the dashboards
 ```

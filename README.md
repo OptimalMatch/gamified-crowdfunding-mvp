@@ -38,7 +38,29 @@ below: the contract this was built to.
 
 ## Results
 
-RESULTS_PLACEHOLDER
+From the last run, a fleet built from nothing by `bin/demo-up.sh`
+(2026-09-17): one live round, one live buy with 3,600 joins, one vote, and
+twenty-seven checks passing (`checks/run.mjs`).
+
+| what the sheet asked | measured |
+| --- | --- |
+| a round opened, sealed before any entry, closed on its clock, drawn, paid | opened → sealed 1.3 s; sealed → closed 90.2 s (the published window); closed → proof 10.4 s (the drand round after the close); proof → paid 5.9 s |
+| entries, weighted, with a path to the root each | 64 entries: 60 from devices, 4 raised by standing contributions on their paydays; €1,115.00 gathered, €557.50 matched by the sponsor |
+| every draw recomputes to the same answer | 201 of 201 hot-tier proofs recompute from the regulator's own copy, 100 in 100; 800 cold rounds hold their entries in the bucket |
+| four thousand join in the same minute, onto the additive counter | 3,600 joined in 25 s (137 a second, 200 phones in flight) before the window closed on its tier; the counter read 3,600, the receipts 3,600, every one signed |
+| the order at the tier reached, against the published quote | 4,800 units at €236.01 (tier 3,200), citing the supplier's signed row; the supplier's node acknowledged and shipped on the same document |
+| take what was held, refund the difference | €1,525,232.72 held, €949,232.22 taken, €576,000.50 refunded the way it came, €1,132,848.00 paid to the supplier; window → ordered 32 s, ordered → paid 3 s; 10,700 ledger entries, all signed |
+| the crowd decides where, ranked and weighted | 300 of 3,600 ranked (quorum 5%), €131,650.89 of weight, one runoff round; carried: a school, split by a captain from the buy |
+| the pallet lands, shares change hands | delivered 3.0 min after the window opened; 25 shares handed over, each a signed write with a photograph |
+
+![A round: the promise made before anybody entered, the entries, the draw, and the recompute button](docs/results/round.png)
+
+![A buy: the ladder, the counter, the order, and where the crowd sent it](docs/results/buy.png)
+
+The other pages are in `docs/results/`: the rounds a market may see,
+the windows, a backer's wallet and statement rendered from the ledger,
+Verify it yourself, and what the sponsor sees.
+
 
 ---
 

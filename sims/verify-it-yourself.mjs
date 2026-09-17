@@ -24,6 +24,8 @@ async function loadKeys() { const k = await node.get1(STORES.keys, "role:round")
 
 // One pass loads everything once: a thousand rounds is four finds, not four thousand.
 export async function loadAll() {
+  // Replicate first: this node may hold a manifest whose members it has not fetched (GAPS.md, 5).
+  for (const c of [STORES.sealed, STORES.draws, STORES.rules, STORES.pools, STORES.pledges]) await ensureCollection(node, c);
   const [seals, draws, rules, pools, pledges] = await Promise.all([node.find(STORES.sealed, { kind: "seal" }, 0), node.find(STORES.draws, {}, 0), node.find(STORES.rules, {}, 0), node.find(STORES.pools, {}, 0), node.find(STORES.pledges, {}, 0)]);
   const by = (xs, f) => { const m = new Map(); for (const x of xs) { const k = f(x); if (!m.has(k)) m.set(k, []); m.get(k).push(x); } return m; };
   return { seals: new Map(seals.map((x) => [x.round_id, x])), draws, rules: new Map(rules.map((x) => [x._id, x])), pools: new Map(pools.map((x) => [x._id, x])), pledges: by(pledges, (p) => p.round_id) };
@@ -35,12 +37,13 @@ export async function verifyRound(roundId, all = null) {
   const rule = draw ? all.rules.get(`${draw.rule_id}@${draw.rule_version}`) : null;
   const pool = all.pools.get(roundId);
   let entries = all.pledges.get(roundId) || [];
-  // A round drawn moments ago may not have reached this node's copy yet: replicate and read once more.
-  if (draw && entries.length < draw.entry_count) { await ensureCollection(node, STORES.pledges); entries = await node.find(STORES.pledges, { round_id: roundId }, 0); if (entries.length < draw.entry_count) return { round_id: roundId, ok: null, why: [`${entries.length} of ${draw.entry_count} entries have reached this node; not yet in sync`] }; }
   if (pool?.cold && entries.length === 0 && draw) {
     // Older than a year: the entries live in the round-history bucket, not the hot store.
     return { round_id: roundId, ok: null, why: ["cold round: entries are in the round-history bucket (bin/archive.mjs), not the hot store"] };
   }
+  // A round drawn moments ago may not have reached this node's copy yet: replicate once and read once more.
+  if (draw && entries.length < draw.entry_count) { if (!all.replicated) { await ensureCollection(node, STORES.pledges); all.replicated = true; } entries = await node.find(STORES.pledges, { round_id: roundId }, 0); if (entries.length < draw.entry_count) return { round_id: roundId, ok: null, why: [`${entries.length} of ${draw.entry_count} entries have reached this node; not yet in sync`] }; }
+  if (!seal) { const again = await node.get1(STORES.sealed, `${roundId}:seal`); if (again) { all.seals.set(roundId, again); return verifyRound(roundId, all); } }
   const r = recomputeDraw({ seal, draw, rule, entries, roundKey, verifySig });
   return { round_id: roundId, ...r, entries: entries.length, mechanism: draw?.result?.mechanism };
 }

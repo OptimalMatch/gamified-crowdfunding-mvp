@@ -9,8 +9,9 @@ cd "$(dirname "$0")/.."
 bin/fetch-engine.sh
 docker compose up -d --build platform sponsor-acme supplier-northlight regulator closed-rounds-and-proofs metabase
 echo "--- nodes up; waiting for them to peer"; sleep 20
-docker compose run --rm seed
-bin/declare-stores.sh
+docker compose run --rm -e SEED_SCHEMA_ONLY=1 seed   # one document per store, so the stores exist
+bin/declare-stores.sh                                 # counters, merges, indexes, before any value lands
+docker compose run --rm seed                          # everything
 docker compose up -d
 echo "--- the watchers, the simulators and the web app are up: http://127.0.0.1:18180"
 docker compose run --rm tools node bin/metabase.mjs &
