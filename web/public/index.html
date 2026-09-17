@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backer app and web</title>
+<meta name="description" content="Browse the round, pledge, watch the counter climb, vote on where it ships, and recompute the draw yourself from the numbers the round published.">
+<link rel="stylesheet" href="/styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%B2%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#/rounds">The crowd <span>a draw anybody can recompute, and a crowd that ships</span></a>
+  <nav>
+    <a href="#/rounds" data-nav="rounds">Rounds</a>
+    <a href="#/buys" data-nav="buys">Buying together</a>
+    <a href="#/me" data-nav="me">My wallet</a>
+    <a href="#/verify" data-nav="verify">Verify it yourself</a>
+    <a href="#/sponsor" data-nav="sponsor">The sponsor's view</a>
+  </nav>
+  <label class="who">You are <select id="who"></select></label>
+</header>
+<main id="main"><p class="muted">Loading…</p></main>
+<footer class="foot"><span id="node-status"></span></footer>
+<script type="module" src="/app.js"></script>
+</body>
+</html>
