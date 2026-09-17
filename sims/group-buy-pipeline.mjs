@@ -82,8 +82,10 @@ async function main() {
       }
       await readSupplierWrites();
       // A window open is the hottest moment: every join appends a member, and a read walks them all, so the hot stores are folded every pass while one is open and every minute otherwise.
+      // The counter document is never folded while a window is open: a fold that runs
+      // while deltas land loses some of them (GAPS.md, 4).
       const hot = (await eu.count(STORES.buys, { status: "open" })) > 0;
-      if (hot || pass % 30 === 0) for (const c of [STORES.commitments, STORES.counts, STORES.buys, STORES.ledger]) { try { await eu.post("/api/doc/compact", { collection: c }); } catch {} }
+      if (hot || pass % 30 === 0) for (const c of hot ? [STORES.commitments, STORES.buys, STORES.ledger] : [STORES.commitments, STORES.counts, STORES.buys, STORES.ledger]) { try { await eu.post("/api/doc/compact", { collection: c }); } catch {} }
     } catch (e) { log("pass failed:", e.message.slice(0, 200)); }
     await sleep(EVERY);
   }
