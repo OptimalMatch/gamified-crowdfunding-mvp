@@ -8,8 +8,9 @@
 //   node sims/verify-it-yourself.mjs r-0042          one round
 //   node sims/verify-it-yourself.mjs --follow        keep going: verify each new proof as it lands
 //   node sims/verify-it-yourself.mjs --receipt p-r-0042-003
-import { fleet, ready, sleep, STORES } from "../lib/api.mjs";
+import { fleet, ready, sleep, ensureCollection, STORES } from "../lib/api.mjs";
 import { recomputeDraw, verifyReceipt } from "../lib/verify.mjs";
+import { verify as verifySig } from "../lib/crypto.mjs";
 
 const F = fleet();
 const node = process.env.VERIFY_NODE === "platform" ? F.platform.eu : F.regulator;
@@ -34,11 +35,13 @@ export async function verifyRound(roundId, all = null) {
   const rule = draw ? all.rules.get(`${draw.rule_id}@${draw.rule_version}`) : null;
   const pool = all.pools.get(roundId);
   let entries = all.pledges.get(roundId) || [];
+  // A round drawn moments ago may not have reached this node's copy yet: replicate and read once more.
+  if (draw && entries.length < draw.entry_count) { await ensureCollection(node, STORES.pledges); entries = await node.find(STORES.pledges, { round_id: roundId }, 0); if (entries.length < draw.entry_count) return { round_id: roundId, ok: null, why: [`${entries.length} of ${draw.entry_count} entries have reached this node; not yet in sync`] }; }
   if (pool?.cold && entries.length === 0 && draw) {
     // Older than a year: the entries live in the round-history bucket, not the hot store.
     return { round_id: roundId, ok: null, why: ["cold round: entries are in the round-history bucket (bin/archive.mjs), not the hot store"] };
   }
-  const r = recomputeDraw({ seal, draw, rule, entries, roundKey });
+  const r = recomputeDraw({ seal, draw, rule, entries, roundKey, verifySig });
   return { round_id: roundId, ...r, entries: entries.length, mechanism: draw?.result?.mechanism };
 }
 
@@ -49,7 +52,7 @@ async function main() {
     const [draw] = await node.find(STORES.draws, { round_id: p.round_id }, 1);
     const roots = await node.find(STORES.sealed, { round_id: p.round_id, kind: "root" }, 0);
     const root = draw?.entry_root || roots.sort((a, b) => (a.sealed_at < b.sealed_at ? 1 : -1))[0]?.root;
-    const r = verifyReceipt({ pledge: p, root });
+    const r = verifyReceipt({ pledge: p, root, verifySig });
     console.log(`${receiptId}: ${r.ok ? "in the set that was drawn" : "NOT verified"} (leaf ${p.leaf_hash?.slice(0, 12)}…, root ${root?.slice(0, 12)}…, path ${p.tree_path?.length} steps)${r.why.length ? ": " + r.why.join("; ") : ""}`);
     process.exit(r.ok ? 0 : 1);
   }
@@ -57,15 +60,15 @@ async function main() {
   do {
     const all = await loadAll();
     const draws = only ? all.draws.filter((d) => d.round_id === only) : all.draws;
-    let ok = 0, bad = 0, cold = 0;
+    let ok = 0, bad = 0, cold = 0, pending = 0;
     for (const d of draws) {
       if (seen.has(d._id)) continue; seen.add(d._id);
       const r = await verifyRound(d.round_id, all);
-      if (r.ok === null) { cold++; continue; }
+      if (r.ok === null) { if (/not yet in sync/.test(r.why[0])) { seen.delete(d._id); pending++; } else cold++; continue; }
       if (r.ok) ok++; else bad++;
       if (!r.ok || only || follow) console.log(`${r.round_id} ${r.mechanism || ""}: ${r.ok ? "recomputes to the published result" : "DOES NOT recompute"} (${r.entries} entries)${r.why.length ? ": " + r.why.join("; ") : ""}`);
     }
-    if (ok + bad + cold) console.log(`${new Date().toISOString()} verified ${ok + bad} draw(s): ${ok} agree, ${bad} disagree, ${cold} in the cold tier`);
+    if (ok + bad + cold) console.log(`${new Date().toISOString()} verified ${ok + bad} draw(s): ${ok} agree, ${bad} disagree, ${cold} in the cold tier${pending ? `, ${pending} not yet in sync` : ""}`);
     if (follow) await sleep(Number(process.env.VERIFY_EVERY_MS || 10000));
   } while (follow);
 }
