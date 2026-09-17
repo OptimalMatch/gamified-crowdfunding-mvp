@@ -127,12 +127,12 @@ await check(26, "after Custody, share by share: metric1 measured per buy", async
 });
 await check(27, "Every draw recomputes to the same answer: independent recomputations that agree within 100 in 100, over the script's run", async () => {
   // Two independent recomputations: this process, from the regulator's own copy, and the escrow's (it paid only after its own agreed).
-  const reg = F.regulator; await ensureCollection(reg, STORES.pledges);
+  const reg = F.regulator; for (const c of [STORES.pledges, STORES.sealed, STORES.draws, STORES.rules]) await ensureCollection(reg, c);
   const draws = await reg.find(STORES.draws, {}, 0);
   const rules = new Map((await reg.find(STORES.rules, {}, 0)).map((r) => [r._id, r])); const seals = new Map((await reg.find(STORES.sealed, { kind: "seal" }, 0)).map((s) => [s.round_id, s]));
   const pledges = await reg.find(STORES.pledges, {}, 0); const by = new Map(); for (const p of pledges) { if (!by.has(p.round_id)) by.set(p.round_id, []); by.get(p.round_id).push(p); }
   let agree = 0, disagree = 0, cold = 0; const bad = [];
-  for (const d of draws) { const pool = await reg.get1(STORES.pools, d.round_id); if (pool?.cold) { cold++; continue; } const r = recomputeDraw({ seal: seals.get(d.round_id), draw: d, rule: rules.get(`${d.rule_id}@${d.rule_version}`), entries: (by.get(d.round_id) || []).filter((p) => p.entry_index != null), roundKey: keys.round, verifySig }); if (r.ok) agree++; else { disagree++; bad.push(`${d.round_id}: ${r.why[0]}`); } }
+  for (const d of draws) { const pool = await reg.get1(STORES.pools, d.round_id); if (pool?.cold) { cold++; continue; } let seal = seals.get(d.round_id); if (!seal) seal = await reg.get1(STORES.sealed, `${d.round_id}:seal`); const r = recomputeDraw({ seal, draw: d, rule: rules.get(`${d.rule_id}@${d.rule_version}`), entries: (by.get(d.round_id) || []).filter((p) => p.entry_index != null), roundKey: keys.round, verifySig }); if (r.ok) agree++; else { disagree++; bad.push(`${d.round_id}: ${r.why[0]}`); } }
   expect(disagree === 0, `${disagree} of ${agree + disagree} disagree: ${bad.slice(0, 3).join("; ")}`);
   const paidLive = pools.filter((p) => p.status === "paid").length, voidLive = pools.filter((p) => p.status === "void").length;
   return `${agree} of ${agree} recomputed from the regulator's copy agree (${cold} cold rounds in the bucket); the escrow agreed on ${paidLive} live round(s) before paying${voidLive ? `, voided ${voidLive}` : ""}`;
