@@ -3,7 +3,7 @@
 // (totals, categories, outcomes; never a backer) and writes its match for
 // rounds in the categories its terms name. Its money is held in escrow like
 // any pledge and released on the same proof signal as the crowd's.
-import { fleet, ready, sleep, now, STORES } from "../lib/api.mjs";
+import { fleet, ready, sleep, now, ensureCollection, STORES } from "../lib/api.mjs";
 const F = fleet(); const me = F.sponsor;
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), "sponsor-acme:", ...a);
 async function main() {
@@ -11,6 +11,7 @@ async function main() {
   const seen = new Set();
   for (;;) {
     try {
+      for (const c of ["rounds_published", "round_outcomes"]) await ensureCollection(me, c);
       const terms = (await me.find(STORES.sponsorTerms, {}, 0)).sort((a, b) => (a.season < b.season ? 1 : -1))[0];
       const open = await me.find("rounds_published", { status: "open" }, 0);
       for (const r of open) {

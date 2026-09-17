@@ -13,6 +13,7 @@ import { fleet, ready, sleep, now, STORES } from "../lib/api.mjs";
 import { sign, sha256, pledgeMessage, commitmentMessage, voteMessage, handoverMessage } from "../lib/crypto.mjs";
 import { deviceKey } from "../lib/keys.mjs";
 import { MARKET_KIND } from "../lib/markets.mjs";
+import { Coalescer } from "../lib/coalesce.mjs";
 
 const F = fleet(); const eu = F.platform.eu;
 const args = process.argv.slice(2); const cmd = args[0];
@@ -23,8 +24,8 @@ let s = Date.now() % 100000; const rnd = () => { s = (s * 1103515245 + 12345) & 
 const pick = (a) => a[Math.floor(rnd() * a.length)];
 const IDEAS = ["a tool library", "a repair café", "a community fridge", "a rehearsal room", "a seed bank", "a bike workshop"];
 
-// Concurrency: n calls in flight at once, like n phones.
-async function inFlight(items, n, fn) { let i = 0; const errs = []; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const it = items[i++]; try { await fn(it); } catch (e) { errs.push(e.message); } } })); return errs; }
+// Concurrency: n calls in flight at once, like n phones, each retrying a dropped connection the way a phone does.
+async function inFlight(items, n, fn) { let i = 0; const errs = []; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const it = items[i++]; let last; for (let t = 0; t < 4; t++) { try { await fn(it); last = null; break; } catch (e) { last = e; await sleep(50 * (t + 1) * (1 + Math.random())); } } if (last) errs.push(last.message); } })); return errs; }
 
 async function openRound() {
   const mechanism = opt("mechanism", "weighted_random_draw"); const market = opt("market", "IE"); const window_s = Number(opt("window", 90));
@@ -64,7 +65,7 @@ async function openWindow() {
   const ladder = (await F.platform.supplier.find(STORES.tiers, { item_index: itemIndex, version: 10 }, 0)).sort((a, b) => a.step - b.step);
   if (!ladder.length) throw new Error(`no published ladder for item ${itemIndex}`);
   const n = (await eu.count(STORES.buys)) + 1; const id = `gb-live-${String(n).padStart(4, "0")}-${Date.now().toString(36).slice(-4)}`;
-  const buy = { _id: id, buy_id: id, item: ladder[0].item, item_index: itemIndex, supplier_id: "supplier-northlight", tier_version: 10, ladder: ladder.map((t) => ({ at_backers: t.at_backers, units: t.units, price_cents: t.price_cents, valid_until: t.valid_until, signature: t.signature })), window_opens_at: now(), window_closes_at: new Date(Date.now() + window_s * 1000).toISOString(), close_on: closeOn, close_tier: closeOn === "tier" ? Number(opt("close-tier", 3200)) : null, status: "scheduled", count: 0, tier_reached: null, max_price_cents: ladder[0].price_cents, default_destination: { kind: "hub", name: "Dublin 7 locker hub", address: "Unit 4, Manor St, Dublin 7" }, quorum: Number(opt("quorum", 0.05)), vote_window_s: Number(opt("vote-window", 45)), funded_by_round: opt("round", null), opened_by: "the schedule, announced", updated_at: now() };
+  const buy = { _id: id, buy_id: id, item: ladder[0].item, item_index: itemIndex, supplier_id: "supplier-northlight", tier_version: 10, ladder: ladder.map((t) => ({ at_backers: t.at_backers, units: t.units, price_cents: t.price_cents, valid_until: t.valid_until, signature: t.signature })), window_opens_at: now(), window_closes_at: new Date(Date.now() + window_s * 1000).toISOString(), close_on: closeOn, close_tier: closeOn === "tier" ? Number(opt("close-tier", 3200)) : null, status: "scheduled", count: 0, tier_reached: null, max_price_cents: ladder[0].price_cents, default_destination: { kind: "hub", name: "Dublin 7 locker hub", address: "Unit 4, Manor St, Dublin 7" }, quorum: Number(opt("quorum", 0.05)), vote_window_s: Number(opt("vote-window", 90)), funded_by_round: opt("round", null), opened_by: "the schedule, announced", updated_at: now() };
   await eu.put(STORES.buys, buy);
   await eu.put(STORES.counts, { _id: id, buy_id: id, item: buy.item, count: 0, units: 0, held_cents: 0, tier_reached: null, updated_at: now() });
   log(`window ${id} for "${buy.item}": ${ladder.length} tiers from ${ladder[0].price_cents} at ${ladder[0].at_backers} to ${ladder[ladder.length - 1].price_cents} at ${ladder[ladder.length - 1].at_backers}, closes ${closeOn === "tier" ? `at ${buy.close_tier} backers` : `on the clock in ${window_s} s`}${closeOn === "tier" ? ` or on the clock in ${window_s} s` : ""}`);
@@ -82,16 +83,22 @@ async function joinAtOnce() {
   const newcomers = people.filter((p) => p.isNew).map((p) => ({ _id: p.backer_id, backer_id: p.backer_id, name: `Newcomer ${p.backer_id.slice(-4)}`, market: "IE", wallet_cents: 50000, referral_credit_cents: 0, streak_weeks: 0, tier: 0, rounds_completed: 0, device_public_key: deviceKey(p.backer_id).publicKey, referred_by: null, joined_at: now() }));
   for (let i = 0; i < newcomers.length; i += 500) await eu.put(STORES.backers, newcomers.slice(i, i + 500));
   if (newcomers.length) log(`${newcomers.length} newcomers signed up`);
-  const t0 = Date.now(); let k = 0;
+  const t0 = Date.now(); let k = 0; let stopped = false;
+  // The additive counter: every join adds. Increments landing in the same few
+  // milliseconds are coalesced into one $inc on the way to the node (GAPS.md, 4).
+  const counter = new Coalescer((sum) => eu.update(STORES.counts, { _id: buy._id }, { $inc: sum }));
   const errs = await inFlight(people, Number(opt("in-flight", 200)), async (b) => {
+    if (stopped) return;
     const units = rnd() < 0.85 ? 1 : 2;
     const c = { _id: `c-${buy._id}-${b.backer_id}`, commitment_id: `c-${buy._id}-${b.backer_id}`, buy_id: buy._id, backer_id: b.backer_id, units, put_cents: buy.max_price_cents, status: "joined", device_public_key: deviceKey(b.backer_id).publicKey, joined_at: now() };
     c.signature = sign(deviceKey(b.backer_id).privateKey, commitmentMessage(c));
     await eu.put(STORES.commitments, c);
-    // The additive counter: every join adds, none waits behind another.
-    await eu.update(STORES.counts, { _id: buy._id }, { $inc: { count: 1, units, held_cents: c.put_cents * units } });
+    await counter.add({ count: 1, units, held_cents: c.put_cents * units });
     k++;
+    // A window that closed on its tier takes no more joins: the app checks every hundred.
+    if (k % 100 === 0 && (await eu.get1(STORES.buys, buy._id))?.status !== "open") { stopped = true; log(`${buy._id}: the window closed after ${k} joins; the rest are turned away`); }
   });
+  await counter.flush();
   const ms = Date.now() - t0;
   const count = await eu.get1(STORES.counts, buy._id);
   log(`${buy._id}: ${k} joined in ${(ms / 1000).toFixed(1)} s (${Math.round(k / (ms / 1000))} a second, ${opt("in-flight", 200)} in flight)${errs.length ? `; ${errs.length} failed: ${errs[0]}` : ""}; the counter reads ${count.count} (${count.units} units)`);

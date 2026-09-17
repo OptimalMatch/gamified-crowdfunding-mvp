@@ -24,6 +24,12 @@ for entry in $(echo "$LIBRARIES" | tr ';' ' '); do
     unidatum init --library "$lib" --node-name "$NODE_NAME" >/dev/null
     echo "$NODE_NAME: initialised $lib in $dir"
   fi
+  # The node's door: every caller on the demo network is one private address
+  # (the web app's container, the simulators, the host through the docker
+  # gateway), and four thousand phones joining in the same minute arrive
+  # through it. The private ranges are allow-listed, which lifts the
+  # per-source rate limit, and the connection cap is raised (DECISIONS.md, 11).
+  [ -f .p2pfs/access.json ] || printf '{"allow":["loopback","lan"],"deny":[],"maxConnsPerIP":%s,"ratePerMinute":100000,"banMinutes":1,"note":"one machine: every caller is a private address"}\n' "${MAX_CONNS_PER_IP:-4096}" > .p2pfs/access.json
   boot=$(lookup "${BOOTSTRAP:-}" "$lib")
   # --seed-open: serve blob bytes to any peer of the library, not only peers this
   # node has synced with; on one private network every container is a member.

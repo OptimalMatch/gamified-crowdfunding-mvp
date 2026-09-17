@@ -21,7 +21,7 @@ function entry(kind, amount, from, to, ref, ids = {}) {
   const e = { _id: id, entry_id: id, round_id: ids.round_id || null, buy_id: ids.buy_id || null, sequence, kind, amount_cents: amount, from, to, ref, at: now(), signed_by: "escrow" };
   e.signature = sign(escrowKey.privateKey, ledgerMessage(e)); return e;
 }
-async function write(entries) { if (entries.length) await eu.put(STORES.ledger, entries); return entries.length; }
+async function write(entries) { for (let i = 0; i < entries.length; i += 500) await eu.put(STORES.ledger, entries.slice(i, i + 500)); return entries.length; }
 
 // Pledges: held from the moment they are made.
 async function holdPledges() {
@@ -88,8 +88,13 @@ async function settleOrders() {
   const ordered = await eu.find(STORES.buys, { status: "ordered" }, 0);
   for (const buy of ordered) {
     const order = await eu.get1(STORES.orders, `po-${buy._id}`); if (!order) continue;
-    const held = await eu.find(STORES.commitments, { buy_id: buy._id, status: "held" }, 0);
+    const all = await eu.find(STORES.commitments, { buy_id: buy._id, status: "held" }, 0);
+    // A window that closed on its tier takes no more joins: anyone the counter admitted after the close is refunded in full.
+    const late = buy.closed_at ? all.filter((c) => c.joined_at > buy.closed_at) : [];
+    const held = all.filter((c) => !late.includes(c));
     const entries = []; let taken = 0, refunded = 0;
+    for (const c of late) { entries.push(entry("refund", c.put_cents * c.units, "escrow", `wallet:${c.backer_id}`, c.commitment_id, { buy_id: buy._id })); refunded += c.put_cents * c.units; }
+    if (late.length) await eu.update(STORES.commitments, { _id: { $in: late.map((c) => c._id) } }, { $set: { status: "refunded", refunded_cents: 0, late: true, settled_at: now() } }, { multi: true });
     for (const c of held) {
       const take = order.unit_price_cents * c.units, back = c.put_cents * c.units - take;
       entries.push(entry("take", take, "escrow", `buy:${buy._id}`, c.commitment_id, { buy_id: buy._id })); taken += take;
@@ -97,11 +102,13 @@ async function settleOrders() {
     }
     entries.push(entry("payout", order.total_cents, `buy:${buy._id}`, `supplier:${order.supplier_id}`, order.order_id, { buy_id: buy._id }));
     await write(entries);
-    for (const c of held) await eu.update(STORES.commitments, { _id: c._id }, { $set: { status: "taken", taken_cents: order.unit_price_cents * c.units, refunded_cents: c.put_cents * c.units - order.unit_price_cents * c.units, settled_at: now() } });
+    // One multi-update per (units, price put) group instead of one per commitment: a few writes for four thousand people.
+    const groups = new Map(); for (const c of held) { const k = `${c.units}|${c.put_cents}`; if (!groups.has(k)) groups.set(k, c); }
+    for (const c of groups.values()) await eu.update(STORES.commitments, { buy_id: buy._id, status: "held", units: c.units, put_cents: c.put_cents }, { $set: { status: "taken", taken_cents: order.unit_price_cents * c.units, refunded_cents: c.put_cents * c.units - order.unit_price_cents * c.units, settled_at: now() } }, { multi: true });
     await eu.update(STORES.orders, { _id: order._id }, { $set: { paid_at: now(), status: "paid" } });
     try { await supplierLib.update(STORES.supplierOrders, { _id: order._id }, { $set: { paid_at: now(), paid_cents: order.total_cents } }); } catch {}
     await eu.update(STORES.buys, { _id: buy._id }, { $set: { status: "paid", paid_at: now(), taken_cents: taken, refunded_cents: refunded, updated_at: now() } });
-    log(`${buy._id}: took ${taken} from ${held.length} commitment(s) at ${order.unit_price_cents} each, refunded ${refunded} the way it came, paid ${order.supplier_id} ${order.total_cents}`);
+    log(`${buy._id}: took ${taken} from ${held.length} commitment(s) at ${order.unit_price_cents} each, refunded ${refunded} the way it came${late.length ? ` (${late.length} joined after the close, refunded in full)` : ""}, paid ${order.supplier_id} ${order.total_cents}`);
   }
 }
 // The split fee, if we do it: a line on the ledger, not a margin.

@@ -138,7 +138,7 @@ async function main() {
       const open = await eu.find(STORES.pools, { status: "open" }, 0);
       for (const p of open) { if (Date.parse(p.closes_at) <= Date.now()) await closeAndDraw(p); else { await weightAndAnchor(p); await publishToSponsor(p, { status: "open" }); } }
       await standingRaises(open.filter((p) => Date.parse(p.closes_at) > Date.now() + 5000));
-      if (pass % 30 === 0) for (const c of [STORES.pledges, STORES.pools, STORES.sealed]) { try { await eu.post("/api/doc/compact", { collection: c }); } catch {} }
+      if (open.length || pass % 30 === 0) for (const c of [STORES.pledges, STORES.pools, STORES.sealed, STORES.backers]) { try { await eu.post("/api/doc/compact", { collection: c }); } catch {} }
     } catch (e) { log("pass failed:", e.message.slice(0, 200)); }
     await sleep(EVERY);
   }
