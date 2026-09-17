@@ -35,7 +35,9 @@ async function readTier(buy) {
   const c = await eu.get1(STORES.counts, buy._id); if (!c) return null;
   const t = tierReached(buy.ladder, c.count);
   const reached = t ? t.at_backers : null;
-  if (reached !== c.tier_reached) { await eu.update(STORES.counts, { _id: buy._id }, { $set: { tier_reached: reached, updated_at: now() } }); log(`${buy._id}: ${c.count} committed, tier ${reached} reached: ${t.units} units at ${t.price_cents} each`); }
+  // The tier reached is written on the buy, never on the counter document: the
+  // counter has one writer path ($inc) so that no read-modify-write races a delta.
+  if (reached !== buy.tier_reached) log(`${buy._id}: ${c.count} committed, tier ${reached} reached: ${t.units} units at ${t.price_cents} each`);
   if (reached !== buy.tier_reached || c.count !== buy.count) await eu.update(STORES.buys, { _id: buy._id }, { $set: { tier_reached: reached, count: c.count, units_committed: c.units, updated_at: now() } });
   return { ...c, tier_reached: reached, tier: t };
 }
